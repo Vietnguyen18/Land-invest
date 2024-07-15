@@ -155,6 +155,21 @@ export const fetchOrganization = async () => {
     return response.data;
 }
 
+export const fetchCreateComment = async (IDAuction, comment , dataUserID) => {
+    const params = {
+        idUser: dataUserID,
+        content: comment,
+    };
+    const response = await instance.post(`/api/landauctions/create_comment/${IDAuction}`,params)
+    console.log('responseData', response);
+    return response.data
+}
+
+//api account
+export const fetchAccount = async () => {
+    const response =  await instance.get("/api/listalluser");
+    return response.data
+}
 
 export const ViewlistGroup = (BoxID) => {
     return instance.get(`/api/group/all_group/${BoxID}`);

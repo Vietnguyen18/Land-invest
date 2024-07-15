@@ -16,7 +16,6 @@ const AuctionInfor = () => {
 // state
   const {LandAuctionID} = useParams()
   const [auctionInfor, setAuctionInfor] = useState(null);
-  console.log('data infor', auctionInfor);
   const [isShowModalComment, setIsShowModalComment] = useState(false)
   const [appraisalData, setAppraisalData] = useState('');
   const navigate = useNavigate()
@@ -110,11 +109,11 @@ const AuctionInfor = () => {
 };
 
 //data modal
-const handleAppraisalChange = (event) => {
-  setAppraisalData(event.target.value);
-};
+// const handleAppraisalChange = (event) => {
+//   setAppraisalData(event.target.value);
+// };
 
-const handleSubmit = () => {
+const CloseModal = () => {
   closeModal();
 };
 
@@ -142,8 +141,8 @@ const handleSubmit = () => {
                     <div className='result-infor'>
                         <h4>{e.Title}</h4>
                         <div className='tablet-note-auction'>
-                            <p>Ghi chú: </p>
-                            <p>Lần đăng: </p>
+                            <p>Ghi chú: {e.Note}</p>
+                            <p>Lần đăng: {e.PostTime}</p>
                             <p>Ngày đăng công khai: </p>
                         </div>
                         <div className='content-infor'>
@@ -235,8 +234,9 @@ const handleSubmit = () => {
                                 </div>
                                 {isShowModalComment && <ModalComponent 
                                         appraisalData={appraisalData}
-                                        handleAppraisalChange={handleAppraisalChange}
-                                        handleSubmit={handleSubmit}
+                                        // handleAppraisalChange={handleAppraisalChange}
+                                        CloseModal={CloseModal}
+                                        IDAuction={LandAuctionID}
                                 />}
                                </div>
                             </div>

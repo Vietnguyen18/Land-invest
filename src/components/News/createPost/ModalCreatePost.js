@@ -36,6 +36,7 @@ const ModalCreatePost = (props) => {
     const textareaContentRef = useRef(null);
     const navigate = useNavigate();
     const user = useSelector(state => state.account.Users);
+    console.log('dataUser1',user);
     const listGroups = useSelector((state) => state.listbox.listgroup);
     console.log("listGroups post: ", listGroups)
 

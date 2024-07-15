@@ -91,7 +91,7 @@ const AuctionSearch = ({formData, handleChange, handleSubmit, province, district
                                 value={formData.organization} 
                                 onChange={handleChange}
                                 >
-                                <option value='Tất cả'>Tất cả</option>
+                                <option value={null}>Tất cả</option>
                                 {isOrganization.map((item, index)=>(
                                     <option key={index} value={item.id}>{item.name}</option>
                                 ))}

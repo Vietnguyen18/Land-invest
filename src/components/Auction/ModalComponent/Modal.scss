@@ -107,7 +107,7 @@
                       cursor: pointer;
                     }
                   }
-                  .submit-button {
+                  .submit-button,.submit-cancel {
                     background-color: #28a745;
                     border: none;
                     border-radius: 10px;
@@ -117,7 +117,11 @@
                     color: #fff;
                     cursor: pointer;
                 }
-                .submit-button:hover {
+                .submit-cancel{
+                  position: relative;
+                  left: 470px;
+                }
+                .submit-button:hover,.submit-cancel:hover {
                     background-color: #218838;
                   }
               }

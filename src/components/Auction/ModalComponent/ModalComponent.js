@@ -1,20 +1,107 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import './Modal.scss'
-const ModalComponent = ({ closeModal, appraisalData,handleAppraisalChange,handleSubmit}) => {
+import { fetchAccount, fetchCreateComment } from '../../../services/api';
+import { useSelector } from 'react-redux';
+import { message, notification } from 'antd';
+
+
+const iconAvatar = 'https://png.pngtree.com/png-clipart/20210608/ourlarge/pngtree-dark-gray-simple-avatar-png-image_3418404.jpg'
+const ModalComponent = ({ CloseModal,IDAuction}) => {
+
+  const [comment, setComment] = useState('');
+  console.log('comment',comment);
+  // const [attachments, setAttachments] = useState([]);
+  const [apiUser, setApiUser] = useState([]);
+  // lấy thông tin userId
+  const dataUserID = useSelector((state) => state.account.dataUser.UserID);
+    useEffect(() => {
+      const fetchUserData = async () => {
+        try {
+          const response = await fetchAccount();
+          const fetchedUser = response.find(user => user.userid === dataUserID);
+          if (fetchedUser) {
+            setApiUser(fetchedUser);
+          } else {
+            notification.error({
+              message: 'Error',
+              description: 'User not found'
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          notification.error({
+            message: 'Error',
+            description: 'Failed to fetch user data'
+          });
+        }
+      };
+
+      fetchUserData();
+    }, [dataUserID]);
+
+  const handleCommentChange = (e) => {
+    setComment(e.target.value);
+  };
+
+  // const handleAttachmentChange = (e) => {
+  //   const files = Array.from(e.target.files);
+  //   setAttachments([...attachments, ...files]);
+  // };
+
+  const handleSubmit = async () => {
+    if (!comment) {
+      notification.error({
+        message: 'Error',
+        description: 'Bình luận không được để trống!'
+      });
+      return;
+    }
+
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      notification.error({
+        message: 'Lỗi đăng nhập',
+        description: 'Xin vui lòng đăng nhập lại'
+      });
+      return;
+    }
+
+    // api comment
+    const response = await fetchCreateComment(IDAuction, comment, dataUserID, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response) {
+      message.success('Đã thêm bình luận thành công');
+      setComment('');
+      // setAttachments([]);
+      CloseModal();
+    } else {
+      notification.error({
+        message: 'Lỗi bình luận',
+        description: response.message
+      });
+    }
+  };
+
 
   return (
-    <div className="appraisal-form" onHide={closeModal}>
+    <div className="appraisal-form" onHide={CloseModal}>
     <div className="appraisal-header">
-      <img src="https://png.pngtree.com/png-clipart/20210608/ourlarge/pngtree-dark-gray-simple-avatar-png-image_3418404.jpg" alt="Avatar" className="avatar" />
-      <span className="appraiser-name">Tên người thẩm định</span>
+      <img src={iconAvatar} alt="Avatar" className="avatar" />
+      <span className="appraiser-name">{apiUser ? apiUser.UserName : 'Tên người thẩm định' }</span>
     </div>
     <div className="appraisal-body">
       <textarea
         className="appraisal-textarea"
         placeholder="Nhập thông tin thẩm định..."
-        value={appraisalData}
-        onChange={handleAppraisalChange}
-      ></textarea>
+        value={comment}
+        onChange={handleCommentChange}
+      >
+
+      </textarea>
       <div className="attachment-section">
         <div className='attachment-item-left'>
             <div className="attachment-item">
@@ -67,6 +154,7 @@ const ModalComponent = ({ closeModal, appraisalData,handleAppraisalChange,handle
         <button className="media-button">🖼️</button>
         <button className="media-button">📹</button>
       </div>
+      <button className="submit-cancel" onClick={CloseModal}>CANCEL</button>
       <button className="submit-button" onClick={handleSubmit}>ĐĂNG</button>
     </div>
   </div>
