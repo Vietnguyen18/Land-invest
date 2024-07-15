@@ -1,33 +1,60 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import './ModalUploadImage.scss';
-import { Button, Modal, notification } from 'antd';
+import { Button, Modal, notification, Select } from 'antd';
 import { DollarIcon, FileUploadIcon } from '../../Icons';
 import { FiPlus } from 'react-icons/fi';
 import { useDropzone } from 'react-dropzone';
 import { useSelector } from 'react-redux';
 import axios from 'axios'; // Import Axios
+import fetchDistrictName, { getDistrict, getProvince } from '../../../function/findProvince';
+import fetchProvinceName from '../../../function/findProvince';
 
-const ModalUploadImage = ({showNotification ,isModalUpLoadVisible, handleCloseModal, selectedPosition }) => {
+const ModalUploadImage = ({
+    showNotification,
+    isModalUpLoadVisible,
+    handleCloseModal,
+    selectedPosition,
+    provinceName,
+    handleSelectedDistrict,
+}) => {
     const datauser = useSelector((state) => state.account.dataUser);
     const [images, setImages] = useState([]);
     const [description, setDescription] = useState('');
     const [priceOnM2, setPriceOnM2] = useState('');
+    const [listDistrict, setListDistrict] = useState([]);
+    const [selectedDistrictId, setSelectedDistrictId] = useState(null);
 
+    console.log(selectedDistrictId);
 
+    useEffect(() => {
+        const getIdDistrict = async () => {
+            if (provinceName) {
+                const province = await getProvince(provinceName);
+                const data = await getDistrict(province.TinhThanhPhoID);
+                setListDistrict(data);
+            }
+        };
+
+        getIdDistrict();
+    }, [provinceName]);
 
     const handleUpload = async () => {
-        if (!datauser || !datauser.UserID || images.length === 0 || !description || !priceOnM2 || !selectedPosition) {
-            // Validate all necessary fields are filled
+        if (
+            !datauser ||
+            !datauser.UserID ||
+            images.length === 0 ||
+            !description ||
+            !priceOnM2 ||
+            !selectedPosition ||
+            !selectedDistrictId
+        ) {
             console.error('Missing required fields');
             showNotification('error', 'Error', 'Missing required fields');
-
             return;
         }
 
-        // Prepare image links as a comma-separated string
         const imageLink = images.join(',');
 
-        // Construct the payload
         const payload = {
             idUser: datauser.UserID,
             imageLink,
@@ -35,7 +62,7 @@ const ModalUploadImage = ({showNotification ,isModalUpLoadVisible, handleCloseMo
             longitude: selectedPosition.lng,
             latitude: selectedPosition.lat,
             priceOnM2,
-            idDistrict: 28, // Example district ID, replace with actual value
+            idDistrict: selectedDistrictId,
         };
 
         try {
@@ -46,42 +73,41 @@ const ModalUploadImage = ({showNotification ,isModalUpLoadVisible, handleCloseMo
             });
 
             console.log('Response:', response.data);
-
-            // Handle success (optional)
             console.log('Data uploaded successfully');
             showNotification('success', 'Success', 'Data uploaded successfully, please reload to see changes');
-
         } catch (error) {
             console.error('Error uploading data:', error);
             showNotification('error', 'Error', 'Error uploading data');
-
         }
     };
 
-    const onDrop = useCallback(async (acceptedFiles) => {
-        const toBase64 = (file) =>
-            new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]); 
-                reader.onerror = (error) => reject(error);
-            });
-    
-        try {
-            const base64Images = await Promise.all(acceptedFiles.map((file) => toBase64(file)));
-            setImages(base64Images);
-        } catch (error) {
-            console.error('Error converting files to base64:', error);
-            showNotification('error', 'Error', 'Error converting files to base64');
-        }
-    }, [showNotification]);
-    
+    const onDrop = useCallback(
+        async (acceptedFiles) => {
+            const toBase64 = (file) =>
+                new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = (error) => reject(error);
+                });
+
+            try {
+                const base64Images = await Promise.all(acceptedFiles.map((file) => toBase64(file)));
+                setImages(base64Images);
+            } catch (error) {
+                console.error('Error converting files to base64:', error);
+                showNotification('error', 'Error', 'Error converting files to base64');
+            }
+        },
+        [showNotification],
+    );
 
     console.log(images);
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: 'image/*', multiple: true });
 
     return (
         <Modal
+            key={1212}
             open={isModalUpLoadVisible}
             // onOk={handleOk}
             onCancel={handleCloseModal}
@@ -119,6 +145,27 @@ const ModalUploadImage = ({showNotification ,isModalUpLoadVisible, handleCloseMo
                         <label htmlFor="">Kinh độ:</label>
                         <span>{selectedPosition?.lng || ''}</span>
                     </div>
+                    <Select
+                        showSearch
+                        placeholder="Chọn quận/huyện"
+                        optionFilterProp="children"
+                        onChange={(value) => {
+                            setSelectedDistrictId(value);
+                            handleSelectedDistrict(value);
+                        }}
+                        filterOption={(input, option) =>
+                            option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                        }
+                        style={{ width: '100%' }}
+                        value={selectedDistrictId}
+                    >
+                        {listDistrict.length > 0 &&
+                            listDistrict.map((district) => (
+                                <Select.Option key={district.DistrictID} value={district.TinhThanhPhoID}>
+                                    {district.DistrictName}
+                                </Select.Option>
+                            ))}
+                    </Select>
                     <div className="content__description">
                         <label htmlFor="">Mô tả:</label>
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
@@ -132,4 +179,4 @@ const ModalUploadImage = ({showNotification ,isModalUpLoadVisible, handleCloseMo
     );
 };
 
-export default memo(ModalUploadImage);
+export default ModalUploadImage;

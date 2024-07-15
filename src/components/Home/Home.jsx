@@ -37,12 +37,20 @@ import { DollarIcon, FileUploadIcon, SaveIcon } from '../Icons';
 import ModalUploadImage from './ModalUploadImage';
 import axios from 'axios';
 import DrawerView from './DrawerView';
-
+import 'leaflet/dist/leaflet.css';
+import fetchProvinceName from '../../function/findProvince';
 const mapContainerStyle = {
     width: '100%',
     height: 'calc(100vh - 56px)',
 };
 const center = [21.136663, 105.7473446];
+
+const customIcon = new L.Icon({
+    iconUrl: require('../../assets/icon.png'),
+    iconSize: [38, 38], // size of the icon
+    iconAnchor: [22, 38], // point of the icon which will correspond to marker's location
+    popupAnchor: [-3, -38], // point from which the popup should open relative to the iconAnchor
+});
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -68,10 +76,13 @@ function Home() {
     const [location, setLocation] = useState([]);
     const [polygon, setPolygon] = useState(null);
     const [listMarker, setListMarker] = useState([]);
+    const [provinceName, setProvinceName] = useState('');
+    const [selectedMarker, setSelectedMarker] = useState(null);
+    const [selectedDistrict, setSelectedDistrict] = useState(null)
 
     // const [coordinates, setCoordinates] = useState([])
     const { lat, lon, coordinates, boundingbox, displayName } = useSelector((state) => state.searchQuery.searchResult);
-
+    console.log(lat, lon);
     const { BaseLayer } = LayersControl;
     const handleSliderChange = (event) => {
         setOpacity(event.target.value);
@@ -85,6 +96,10 @@ function Home() {
             window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
         }
     };
+
+    const handleSelectedDistrict = (id) => {
+        setSelectedDistrict(id)
+    }
 
     const handleCloseModal = () => {
         setIsModalUploadVisible(false);
@@ -162,15 +177,17 @@ function Home() {
 
     const MapEvents = () => {
         useMapEvents({
-            click(e) {
+            click: async (e) => {
                 const { lat, lng } = e.latlng;
                 setSelectedPosition({ lat, lng });
+                const districtName = await fetchProvinceName(lat, lng);
+                console.log(districtName);
+                setProvinceName(districtName.provinceName);
             },
         });
         return null;
     };
 
-    console.log(selectedPosition);
 
     const handleClick = (index) => {
         setActiveItem(index);
@@ -198,29 +215,29 @@ function Home() {
         console.log('helooooooooooooooo');
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch(
-                    'https://apilandinvest.gachmen.org/api/landauctions/search/1?fbclid=IwZXh0bgNhZW0CMTAAAR1oHBpYlbHJfOuEWlCwGbcdC1csdl9wM2F0ZEWSrIcZK3_QAj3Weewb6pY_aem_sNNcYgwRijyY_JiZ2dUsww',
-                );
-                const data = await response.json();
-                if (data.status === 200 && data.message.length > 0) {
-                    const imageUrl = data.message[0].imageHttp;
-                    const location = JSON.parse(data.message[0].location);
-                    const coordinates = data.message[0].coordinates;
-                    setImageUrl(imageUrl);
-                    setLocation(location);
-                    // setCoordinates(coordinates);
-                    console.log(imageUrl, [location]);
-                }
-            } catch (error) {
-                console.error('Error fetching the data', error);
-            }
-        };
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+    //             const response = await fetch(
+    //                 'https://apilandinvest.gachmen.org/api/landauctions/search/1?fbclid=IwZXh0bgNhZW0CMTAAAR1oHBpYlbHJfOuEWlCwGbcdC1csdl9wM2F0ZEWSrIcZK3_QAj3Weewb6pY_aem_sNNcYgwRijyY_JiZ2dUsww',
+    //             );
+    //             const data = await response.json();
+    //             if (data.status === 200 && data.message.length > 0) {
+    //                 const imageUrl = data.message[0].imageHttp;
+    //                 const location = JSON.parse(data.message[0].location);
+    //                 const coordinates = data.message[0].coordinates;
+    //                 setImageUrl(imageUrl);
+    //                 setLocation(location);
+    //                 // setCoordinates(coordinates);
+    //                 console.log(imageUrl, [location]);
+    //             }
+    //         } catch (error) {
+    //             console.error('Error fetching the data', error);
+    //         }
+    //     };
 
-        fetchData();
-    }, []);
+    //     fetchData();
+    // }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -229,7 +246,7 @@ function Home() {
                     'https://apilandinvest.gachmen.org/api/location/list_info_by_district/28',
                 );
                 setListMarker(data.data);
-                console.log("listMarker", listMarker);
+                console.log('listMarker', data.data);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -239,18 +256,17 @@ function Home() {
     }, []);
 
     useEffect(() => {
-        if (coordinates && coordinates.length > 0) {
-            // Map coordinates to Leaflet format [lat, lng]
+        if (coordinates && coordinates.length > 0 && Array.isArray(coordinates)) {
             const leafletCoordinates = coordinates[0].map((coord) => [
-                coord[1], // lat
-                coord[0], // lng
+                coord[1], 
+                coord[0], 
             ]);
             setPolygon(leafletCoordinates);
         } else {
-            setPolygon(null); // Reset polygon if no coordinates
+            setPolygon(null);
         }
     }, [coordinates]);
-
+    
     return (
         <div className="home-container">
             {/* <div {...getRootProps()} className="drop--container">
@@ -400,7 +416,7 @@ function Home() {
                         />
                     </BaseLayer>
                 </LayersControl>
-                {imageUrl && location && <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />}
+                {/* {imageUrl && location && <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />} */}
                 {image &&
                     boundingbox?.length > 0 &&
                     image.map((item, index) => (
@@ -429,24 +445,36 @@ function Home() {
                     </>
                 )}
 
-                {listMarker && listMarker.map((marker) => (
-                    <Marker
-                        key={marker.id}
-                        position={[marker.latitude, marker.longitude]}
-                        // icon={customIcon}
-                    >
-                        <Popup>
-                            <div>
-                                <h3>{marker.description}</h3>
-                                <p>Price/m²: {marker.priceOnM2}</p>
-                                <button onClick={() => setIsDrawerVisible(true)}>xem chi tiet</button>
-                               <DrawerView isDrawerVisible={isDrawerVisible} closeDrawer={closeDrawer} images={marker.imageLink} />
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
+                {listMarker &&
+                    listMarker.map((marker) => (
+                        <Marker key={marker.id} position={[marker.latitude, marker.longitude]} icon={customIcon}>
+                            <Popup>
+                                <div>
+                                    <h3>{marker.description}</h3>
+                                    <p>Price/m²: {marker.priceOnM2}</p>
+                                    <button
+                                        onClick={() => {
+                                            setIsDrawerVisible(true);
+                                            setSelectedMarker(marker);
+                                        }}
+                                    >
+                                        Xem chi tiết
+                                    </button>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))}
 
                 {polygon && <Polygon pathOptions={{ fillColor: 'transparent' }} positions={polygon} />}
+                {selectedMarker && (
+                    <DrawerView
+                        isDrawerVisible={isDrawerVisible}
+                        closeDrawer={closeDrawer}
+                        images={selectedMarker.imageLink}
+                        description={selectedMarker.description}
+                        priceOnM2={selectedMarker.priceOnM2}
+                    />
+                )}
             </MapContainer>
 
             <ModalDownMenu
@@ -470,6 +498,8 @@ function Home() {
                 isModalUpLoadVisible={isModalUpLoadVisible}
                 handleCloseModal={handleCloseModal}
                 selectedPosition={selectedPosition}
+                provinceName={provinceName}
+                handleSelectedDistrict={handleSelectedDistrict}
             />
         </div>
     );

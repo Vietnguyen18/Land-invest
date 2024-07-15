@@ -243,3 +243,34 @@ export const FileUploadIcon = () => (
         />
     </svg>
 );
+
+export const CheckedSquareIcon = () => (
+    <svg width="25" height="20" viewBox="0 0 25 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+            d="M18.8116 1H6.93068C4.11856 1 1.83887 2.85975 1.83887 5.15385V14.8462C1.83887 17.1403 4.11856 19 6.93068 19H18.8116C21.6238 19 23.9034 17.1403 23.9034 14.8462V5.15385C23.9034 2.85975 21.6238 1 18.8116 1Z"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+        <path
+            d="M17.8223 6.88458L11.0332 13.8077L7.63867 11.7307"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </svg>
+);
+
+export const CheckSquareIcon = () => (
+    <svg width="25" height="20" viewBox="0 0 25 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+            d="M17.9727 1H6.09181C3.27969 1 1 2.85975 1 5.15385V14.8462C1 17.1403 3.27969 19 6.09181 19H17.9727C20.7849 19 23.0645 17.1403 23.0645 14.8462V5.15385C23.0645 2.85975 20.7849 1 17.9727 1Z"
+            stroke="#030303"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </svg>
+);
