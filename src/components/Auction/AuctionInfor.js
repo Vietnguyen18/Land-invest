@@ -152,9 +152,9 @@ const MapEvents = () => {
                     <div className='result-infor'>
                         <h4>{e.Title}</h4>
                         <div className='tablet-note-auction'>
-                            <p>Ghi chú: {e.Note}</p>
-                            <p>Lần đăng: {e.PostTime}</p>
-                            <p>Ngày đăng công khai: </p>
+                            <p>Ghi chú: <span>{e.Note}</span></p>
+                            <p>Lần đăng: <span>{e.PostTime}</span></p>
+                            <p>Ngày đăng công khai: <span>{formatDate(e.CreateAt)}</span></p>
                         </div>
                         <div className='content-infor'>
                             <div className='infor-item'>
@@ -177,7 +177,7 @@ const MapEvents = () => {
                                 <h5>Thông tin việc đấu giá</h5>
                                 <div className='infor-owners'>
                                     <p>Thời gian tổ chức cuộc đấu giá: {formatDate(e.EventSchedule)}</p>
-                                    <p>Đơn vị tổ chức đấu giá: </p>
+                                    <p>Đơn vị tổ chức đấu giá: {e.NameAuctionHouse}</p>
                                 </div>
                             </div>
                             <div className='news-board'>

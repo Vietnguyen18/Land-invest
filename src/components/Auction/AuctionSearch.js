@@ -38,6 +38,8 @@ const AuctionSearch = ({formData, handleChange, handleSubmit, province, district
         return null;
     };
 
+    
+
   return (
     <Container className=' m-0 p-0'>
             <div className=" auction-content">
