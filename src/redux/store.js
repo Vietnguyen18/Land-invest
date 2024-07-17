@@ -4,6 +4,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import accountReducer from '../redux/account/accountSlice';
 import listBoxReducer from './listForum/lisForumSlice';
 import searchQueryReducer from './search/searchSlice'
+import filterReducer from './filter/filterSlice'
 import {
   persistStore,
   persistReducer,
@@ -28,7 +29,8 @@ const rootReducer = combineReducers({
   account: accountReducer,
   listbox: listBoxReducer,
   getid: listGroupReducer,
-  searchQuery: searchQueryReducer
+  searchQuery: searchQueryReducer,
+  filter: filterReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

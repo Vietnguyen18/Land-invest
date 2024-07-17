@@ -28,18 +28,29 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import { message } from 'antd';
+import { Drawer, message, notification } from 'antd';
 import ModalDownMenu from './ModalDown/ModalDownMenu';
 import ModalPriceFilter from './ModalDown/ModalPriceFilter';
 import { useSelector } from 'react-redux';
 import ResetCenterView from '../../function/resetCenterView';
-import { DollarIcon, SaveIcon } from '../Icons';
-
+import { DollarIcon, FileUploadIcon, SaveIcon } from '../Icons';
+import ModalUploadImage from './ModalUploadImage';
+import axios from 'axios';
+import DrawerView from './DrawerView';
+import 'leaflet/dist/leaflet.css';
+import fetchProvinceName from '../../function/findProvince';
 const mapContainerStyle = {
     width: '100%',
     height: 'calc(100vh - 56px)',
 };
 const center = [21.136663, 105.7473446];
+
+const customIcon = new L.Icon({
+    iconUrl: require('../../assets/icon.png'),
+    iconSize: [38, 38], // size of the icon
+    iconAnchor: [22, 38], // point of the icon which will correspond to marker's location
+    popupAnchor: [-3, -38], // point from which the popup should open relative to the iconAnchor
+});
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -57,11 +68,18 @@ function Home() {
     const [selectedPosition, setSelectedPosition] = useState(null); // State để lưu trữ vị trí được chọn trên bản đồ
     const [activeItem, setActiveItem] = useState(0);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalUpLoadVisible, setIsModalUploadVisible] = useState(false);
+    const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [isShowModalPrice, setIsShowModalPrice] = useState(false);
     const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
     const [imageUrl, setImageUrl] = useState('');
     const [location, setLocation] = useState([]);
     const [polygon, setPolygon] = useState(null);
+    const [listMarker, setListMarker] = useState([]);
+    const [provinceName, setProvinceName] = useState('');
+    const [selectedMarker, setSelectedMarker] = useState(null);
+    const [selectedDistrict, setSelectedDistrict] = useState(null)
+
     // const [coordinates, setCoordinates] = useState([])
     const { lat, lon, coordinates, boundingbox, displayName } = useSelector((state) => state.searchQuery.searchResult);
     console.log(lat, lon);
@@ -79,6 +97,18 @@ function Home() {
         }
     };
 
+    const handleSelectedDistrict = (id) => {
+        setSelectedDistrict(id)
+    }
+
+    const handleCloseModal = () => {
+        setIsModalUploadVisible(false);
+    };
+
+    const closeDrawer = () => {
+        setIsDrawerVisible(false);
+    };
+
     const onDrop = useCallback((acceptedFiles) => {
         const file = acceptedFiles[0];
         console.log('File', file);
@@ -87,7 +117,7 @@ function Home() {
             const img = new Image();
             img.onload = () => {
                 URL.revokeObjectURL(img.src);
-                setImage(prev => [...prev, img]);
+                setImage((prev) => [...prev, img]);
                 setImageSize({
                     width: img.width,
                     height: img.height,
@@ -147,13 +177,17 @@ function Home() {
 
     const MapEvents = () => {
         useMapEvents({
-            click(e) {
+            click: async (e) => {
                 const { lat, lng } = e.latlng;
-                setSelectedPosition([lat, lng]);
+                setSelectedPosition({ lat, lng });
+                const districtName = await fetchProvinceName(lat, lng);
+                console.log(districtName);
+                setProvinceName(districtName.provinceName);
             },
         });
         return null;
     };
+
 
     const handleClick = (index) => {
         setActiveItem(index);
@@ -170,24 +204,51 @@ function Home() {
     };
     const buttonRef = useRef();
 
+    const showNotification = (type, message, description) => {
+        notification[type]({
+            message,
+            description,
+        });
+    };
+
+    const handleClickMarker = () => {
+        console.log('helooooooooooooooo');
+    };
+
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+    //             const response = await fetch(
+    //                 'https://apilandinvest.gachmen.org/api/landauctions/search/1?fbclid=IwZXh0bgNhZW0CMTAAAR1oHBpYlbHJfOuEWlCwGbcdC1csdl9wM2F0ZEWSrIcZK3_QAj3Weewb6pY_aem_sNNcYgwRijyY_JiZ2dUsww',
+    //             );
+    //             const data = await response.json();
+    //             if (data.status === 200 && data.message.length > 0) {
+    //                 const imageUrl = data.message[0].imageHttp;
+    //                 const location = JSON.parse(data.message[0].location);
+    //                 const coordinates = data.message[0].coordinates;
+    //                 setImageUrl(imageUrl);
+    //                 setLocation(location);
+    //                 // setCoordinates(coordinates);
+    //                 console.log(imageUrl, [location]);
+    //             }
+    //         } catch (error) {
+    //             console.error('Error fetching the data', error);
+    //         }
+    //     };
+
+    //     fetchData();
+    // }, []);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(
-                    'https://apilandinvest.gachmen.org/api/landauctions/search/1?fbclid=IwZXh0bgNhZW0CMTAAAR1oHBpYlbHJfOuEWlCwGbcdC1csdl9wM2F0ZEWSrIcZK3_QAj3Weewb6pY_aem_sNNcYgwRijyY_JiZ2dUsww',
+                const { data } = await axios.get(
+                    'https://apilandinvest.gachmen.org/api/location/list_info_by_district/28',
                 );
-                const data = await response.json();
-                if (data.status === 200 && data.message.length > 0) {
-                    const imageUrl = data.message[0].imageHttp;
-                    const location = JSON.parse(data.message[0].location);
-                    const coordinates = data.message[0].coordinates;
-                    setImageUrl(imageUrl);
-                    setLocation(location);
-                    // setCoordinates(coordinates);
-                    console.log(imageUrl, [location]);
-                }
+                setListMarker(data.data);
+                console.log('listMarker', data.data);
             } catch (error) {
-                console.error('Error fetching the data', error);
+                console.error('Error fetching data:', error);
             }
         };
 
@@ -195,29 +256,27 @@ function Home() {
     }, []);
 
     useEffect(() => {
-        if (coordinates && coordinates.length > 0) {
-            // Map coordinates to Leaflet format [lat, lng]
+        if (coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])) {
             const leafletCoordinates = coordinates[0].map((coord) => [
-                coord[1], // lat
-                coord[0], // lng
+                coord[1], 
+                coord[0], 
             ]);
             setPolygon(leafletCoordinates);
         } else {
-            setPolygon(null); // Reset polygon if no coordinates
+            setPolygon(null);
         }
-        console.log('test',coordinates);
     }, [coordinates]);
-
+    
     return (
         <div className="home-container">
-            <div {...getRootProps()} className="drop--container">
+            {/* <div {...getRootProps()} className="drop--container">
                 <input {...getInputProps()} />
                 {isDragActive ? (
                     <p>Drop the files here ...</p>
                 ) : (
                     <p>Drag and drop some files here, or click to select files</p>
                 )}
-            </div>
+            </div> */}
             {/* Slider Container */}
             <div
                 className="slider-container"
@@ -335,7 +394,7 @@ function Home() {
                 center={center}
                 zoom={13}
                 maxZoom={30}
-                whenCreated={(map) => {
+                whenReady={(map) => {
                     mapRef.current = map;
                 }}
             >
@@ -343,7 +402,7 @@ function Home() {
                 <LayersControl>
                     <BaseLayer checked name="Map vệ tinh">
                         <TileLayer
-                            url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                            url="http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
                             subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
                             maxZoom={30}
                             attribution="&copy; <a href='https://www.google.com/maps'>Google Maps</a> contributors"
@@ -357,23 +416,21 @@ function Home() {
                         />
                     </BaseLayer>
                 </LayersControl>
-                {imageUrl && location && (
-                    <ImageOverlay url={imageUrl} bounds={location} opacity={opacity}/>
-                )}
-                {image && boundingbox?.length > 0 && (
+                {/* {imageUrl && location && <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />} */}
+                {image &&
+                    boundingbox?.length > 0 &&
                     image.map((item, index) => (
                         <div key={index}>
                             <ImageOverlay
-                            url={item}
-                            bounds={[
-                                [boundingbox[0], boundingbox[2]],
-                                [boundingbox[1], boundingbox[3]],
-                            ]}
-                            opacity={opacity}
-                        />
+                                url={item}
+                                bounds={[
+                                    [boundingbox[0], boundingbox[2]],
+                                    [boundingbox[1], boundingbox[3]],
+                                ]}
+                                opacity={opacity}
+                            />
                         </div>
-                    ))
-                )}
+                    ))}
                 {selectedPosition && (
                     <Marker position={selectedPosition}>
                         <Popup>Vị trí đã chọn</Popup>
@@ -381,13 +438,43 @@ function Home() {
                 )}
                 {lat && lon && (
                     <>
-                        <Marker position={[lat, lon]}>
+                        <Marker position={[lat, lon]} eventHandlers={{ click: () => console.log('hello') }}>
                             <Popup>Vị trí trung tâm</Popup>
                         </Marker>
                         <ResetCenterView lat={lat} lon={lon} />
                     </>
                 )}
+
+                {listMarker &&
+                    listMarker.map((marker) => (
+                        <Marker key={marker.id} position={[marker.latitude, marker.longitude]} icon={customIcon}>
+                            <Popup>
+                                <div>
+                                    <h3>{marker.description}</h3>
+                                    <p>Price/m²: {marker.priceOnM2}</p>
+                                    <button
+                                        onClick={() => {
+                                            setIsDrawerVisible(true);
+                                            setSelectedMarker(marker);
+                                        }}
+                                    >
+                                        Xem chi tiết
+                                    </button>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))}
+
                 {polygon && <Polygon pathOptions={{ fillColor: 'transparent' }} positions={polygon} />}
+                {selectedMarker && (
+                    <DrawerView
+                        isDrawerVisible={isDrawerVisible}
+                        closeDrawer={closeDrawer}
+                        images={selectedMarker.imageLink}
+                        description={selectedMarker.description}
+                        priceOnM2={selectedMarker.priceOnM2}
+                    />
+                )}
             </MapContainer>
 
             <ModalDownMenu
@@ -396,6 +483,24 @@ function Home() {
                 style={{ top: modalPosition.top, left: modalPosition.left }}
             />
             <ModalPriceFilter showPrice={isShowModalPrice} handleClosePrice={handleClosePrice} />
+
+            {/* upload Image */}
+            {isModalUpLoadVisible || (
+                <div className="upload-image-container" onClick={() => setIsModalUploadVisible(true)}>
+                    <FileUploadIcon />
+                    <p>Thêm hình ảnh mảnh đất, dự án</p>
+                    <FiPlus size={22} />
+                </div>
+            )}
+
+            <ModalUploadImage
+                showNotification={showNotification}
+                isModalUpLoadVisible={isModalUpLoadVisible}
+                handleCloseModal={handleCloseModal}
+                selectedPosition={selectedPosition}
+                provinceName={provinceName}
+                handleSelectedDistrict={handleSelectedDistrict}
+            />
         </div>
     );
 }

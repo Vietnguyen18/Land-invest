@@ -1,7 +1,7 @@
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import logo from '../../assets/channels4_profile.jpg';
 
 import { IoIosNotifications } from 'react-icons/io';
@@ -15,9 +15,9 @@ import { callLogout, logoutUser, searchQueryAPI } from '../../services/api';
 import { message, notification } from 'antd';
 import axios from 'axios';
 import { useDebounce } from 'use-debounce';
-import  { doSearch } from '../../redux/search/searchSlice';
+import { doSearch } from '../../redux/search/searchSlice';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { ActionIcon, HomeIcon, NewsIcon, SearchIcon, SearchNavbarIcon,NotificationIcon } from '../Icons';
+import { ActionIcon, HomeIcon, NewsIcon, SearchIcon, SearchNavbarIcon, NotificationIcon } from '../Icons';
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org/search?';
 const params = {
@@ -32,13 +32,14 @@ const Header = () => {
     const isAuthenticated = useSelector((state) => state.account.isAuthenticated);
     const user = useSelector((state) => state.account.Users);
     const datauser = useSelector((state) => state.account.dataUser);
+    
+    const location = useLocation();
 
     const [isShowModalLogin, setIsShowModalLogin] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResult, setSearchResult] = useState([]);
     const [debouncedInputSearch] = useDebounce(searchQuery, 300);
     const [isLoading, setIsLoading] = useState(false);
-  
 
     let items = [
         {
@@ -78,34 +79,40 @@ const Header = () => {
     }
 
     const handleLogOut = async () => {
-        // const token = localStorage.getItem('access_token');
-        // if (!token) {
-        //     notification.error({
-        //         message: 'Lỗi xác thực',
-        //         description: 'Không tìm thấy token. Vui lòng đăng nhập lại.'
-        //     });
-        //     return;
-        // }
-        const res = await callLogout();
-        res.headers = {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        };
-        if (res) {
-            // res.headers= {
-            //     'Authorization': `Bearer ${token}`
-            // }
-            // console.log("refresh_token logout",localStorage.getItem('refresh_token'))
-            // console.log("access_token logout",localStorage.getItem('access_token'))
-            console.log('res.headers', res.headers);
-            dispatch(doLogoutAction());
-            navigate('/');
-            message.success('Đăng xuất thành công!');
-            // localStorage.removeItem('access_token');
-            // localStorage.removeItem('refresh_token');
-        } else {
+    
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                notification.error({
+                    message: 'Lỗi xác thực',
+                    description: 'Không tìm thấy token. Vui lòng đăng nhập lại.'
+                });
+                return;
+            }
+    
+            const res = await callLogout({
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+    
+            if (res) {
+                dispatch(doLogoutAction());
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                navigate('/');
+                message.success('Đăng xuất thành công!');
+            } else {
+                notification.error({
+                    message: 'Có lỗi xảy ra',
+                    description: res.message && Array.isArray(res.message) ? res.message[0] : res.message,
+                    duration: 5,
+                });
+            }
+        } catch (error) {
             notification.error({
-                message: 'Có lỗi xáy ra',
-                description: res.message && Array.isArray(res.message) ? res.message[0] : res.message[1],
+                message: 'Có lỗi xảy ra',
+                description: error.message,
                 duration: 5,
             });
         }
@@ -124,7 +131,7 @@ const Header = () => {
                     );
 
                     const filteredData = data.filter((item) => item.geojson?.type === 'Polygon');
-                    console.log('test',filteredData);
+                    console.log('test', filteredData);
 
                     setSearchResult(filteredData);
 
@@ -144,19 +151,52 @@ const Header = () => {
     }, [debouncedInputSearch]);
 
     const handleItemClick = (item) => {
-        item && dispatch(
-            doSearch({
-                displayName: item.display_name,
-                lat: item.lat,
-                lon: item.lon,
-                coordinates: item.geojson.coordinates,
-                boundingbox: item.boundingbox,
-            }),
-        );
+        item &&
+            dispatch(
+                doSearch({
+                    displayName: item.display_name,
+                    lat: item.lat,
+                    lon: item.lon,
+                    coordinates: item.geojson.coordinates,
+                    boundingbox: item.boundingbox,
+                }),
+            );
         setSearchQuery('');
-        // window.history.pushState({}, '', `/${item.name}`);
-        navigate(`/${item.name}`)
+
+        navigate(`/${item.display_name}`);
     };
+
+    useEffect(() => {
+        const pathname = decodeURIComponent(location.pathname);
+        const displayName = pathname.substring(1);
+
+        const handleGetData = async () => {
+            try {
+                const { data } = await axios.get(
+                    `${NOMINATIM_BASE_URL}${new URLSearchParams({
+                        ...params,
+                        q: displayName || "Hà Nội, Vietnam",
+                    }).toString()}`,
+                );
+                if (data && data.length > 0) {
+                    const item = data[0];
+                    dispatch(
+                        doSearch({
+                            displayName: item.display_name,
+                            lat: item.lat,
+                            lon: item.lon,
+                            coordinates: displayName ? item.geojson.coordinates : [],
+                            boundingbox: displayName ? item.boundingbox: [],
+                        }),
+                    );
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        handleGetData();
+    }, [location, dispatch]);
 
     return (
         <>
@@ -181,13 +221,13 @@ const Header = () => {
                                 <HomeIcon />
                             </NavLink>
                             <NavLink to="/notifications" className="nav-link">
-                               <NotificationIcon />
+                                <NotificationIcon />
                             </NavLink>
                             <NavLink to="/news" className="nav-link">
-                               <NewsIcon />
+                                <NewsIcon />
                             </NavLink>
                             <NavLink to="/search" className="nav-link">
-                               <SearchNavbarIcon />
+                                <SearchNavbarIcon />
                             </NavLink>
                             <NavLink to="/auctions" className="nav-link">
                                 <ActionIcon />

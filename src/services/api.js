@@ -132,6 +132,17 @@ export const fetchDistrictsByProvinces = async (ProvinceID) => {
     }
 }
 
+export const fetchListHighestLocation = async (districtId) => {
+    try {
+        const response = await instance.get(`/api/location/list_info_highest/${districtId}`)
+        return response.data
+    }
+    catch (error) {
+        console.error('Error fetching districts', error)
+        return 
+    }
+}
+
 export const fetchFilteredAuctions = async (startTime, endTime,startPrice,endPrice,province,district) => {
     const params = {
         StartTime: startTime,
