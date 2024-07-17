@@ -36,10 +36,11 @@ const ModalPriceFilter = (props) => {
     const handleCheckboxChange = (category, id) => {
         setSelectedFilters((prevState) => {
             const updatedCategory = prevState[category].includes(id) ? [] : [id];
-            console.log(updatedCategory);
             return { ...prevState, [category]: updatedCategory };
         });
     };
+
+    console.log(selectedFilters);
 
     const onStart = (_event, uiData) => {
         const { clientWidth, clientHeight } = window.document.documentElement;

@@ -32,6 +32,7 @@ const Header = () => {
     const isAuthenticated = useSelector((state) => state.account.isAuthenticated);
     const user = useSelector((state) => state.account.Users);
     const datauser = useSelector((state) => state.account.dataUser);
+    
     const location = useLocation();
 
     const [isShowModalLogin, setIsShowModalLogin] = useState(false);
@@ -78,34 +79,40 @@ const Header = () => {
     }
 
     const handleLogOut = async () => {
-        // const token = localStorage.getItem('access_token');
-        // if (!token) {
-        //     notification.error({
-        //         message: 'Lỗi xác thực',
-        //         description: 'Không tìm thấy token. Vui lòng đăng nhập lại.'
-        //     });
-        //     return;
-        // }
-        const res = await callLogout();
-        res.headers = {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        };
-        if (res) {
-            // res.headers= {
-            //     'Authorization': `Bearer ${token}`
-            // }
-            // console.log("refresh_token logout",localStorage.getItem('refresh_token'))
-            // console.log("access_token logout",localStorage.getItem('access_token'))
-            console.log('res.headers', res.headers);
-            dispatch(doLogoutAction());
-            navigate('/');
-            message.success('Đăng xuất thành công!');
-            // localStorage.removeItem('access_token');
-            // localStorage.removeItem('refresh_token');
-        } else {
+    
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                notification.error({
+                    message: 'Lỗi xác thực',
+                    description: 'Không tìm thấy token. Vui lòng đăng nhập lại.'
+                });
+                return;
+            }
+    
+            const res = await callLogout({
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+    
+            if (res) {
+                dispatch(doLogoutAction());
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                navigate('/');
+                message.success('Đăng xuất thành công!');
+            } else {
+                notification.error({
+                    message: 'Có lỗi xảy ra',
+                    description: res.message && Array.isArray(res.message) ? res.message[0] : res.message,
+                    duration: 5,
+                });
+            }
+        } catch (error) {
             notification.error({
-                message: 'Có lỗi xáy ra',
-                description: res.message && Array.isArray(res.message) ? res.message[0] : res.message[1],
+                message: 'Có lỗi xảy ra',
+                description: error.message,
                 duration: 5,
             });
         }

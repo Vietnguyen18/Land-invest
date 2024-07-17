@@ -256,7 +256,7 @@ function Home() {
     }, []);
 
     useEffect(() => {
-        if (coordinates && coordinates.length > 0 && Array.isArray(coordinates)) {
+        if (coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])) {
             const leafletCoordinates = coordinates[0].map((coord) => [
                 coord[1], 
                 coord[0], 
