@@ -158,8 +158,11 @@ export const fetchListComment = async(IDAuction) => {
 }
 
 //api edit comment
-export const EditCommentAuction = async(IDComment) => {
-    const response = await instance.patch(`/api/landauctions/edit_comment/${IDComment}`);
+export const EditCommentAuction = async(IDComment,EditComment) => {
+    const params = {
+        content: EditComment
+    }
+    const response = await instance.patch(`/api/landauctions/edit_comment/${IDComment}`,params);
     return response.data
 }
 //api delete comment

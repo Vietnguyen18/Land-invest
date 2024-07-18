@@ -8,7 +8,7 @@ import { IoEllipsisVerticalCircleSharp } from 'react-icons/io5'
 
 const ListComment = ({IDAuction}) => {
     const [dataListComment, setDataListComment] = useState([])
-    const [editing, setEditing] = useState(null) //id edit
+    const [editing, setEditing] = useState(null) //id comment
     const [EditComment, setEditComment] = useState('') // edit comment
     const [openModal, setOpenModal] = useState(null)
     const dataUserID = useSelector((state) => state.account.dataUser.UserID);
@@ -55,7 +55,7 @@ const ListComment = ({IDAuction}) => {
 
     const handleSaveEdit = async (idComment) => {
       try{
-        await EditCommentAuction(idComment)
+        await EditCommentAuction(idComment,EditComment)
         setDataListComment(dataListComment.filter(commnet => commnet.idComment !== idComment ))
         notification.success({
           message: "Success",
