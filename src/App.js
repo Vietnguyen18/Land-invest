@@ -21,8 +21,8 @@ import TableUser from './pages/Admin/ListUser';
 import UserProfile from './pages/ProfileUser/UserProfile';
 import Profile from './pages/ProfileUser/Profile';
 import { useSelector } from 'react-redux';
-import Notification from "./components/Notification/Notification";
-import AuctionInfor from "./components/Auction/AuctionInfor";
+import Notification from './components/Notification/Notification';
+import AuctionInfor from './components/Auction/AuctionInfor';
 
 const Layout = () => {
     return (
@@ -39,66 +39,64 @@ const Layout = () => {
 };
 
 function App() {
-  const datauser = useSelector(state => state.account.dataUser);
-const item = [
-  {
-    path: "/",
-    element: <Layout/>,
-    errorElement: <NotFound/>,
-    children: [
-      {
-        index: true,
-        element: <Home/>
-      },
-      {
-        path: '/:name',
-        element: <Home/>
-      },
-      {
-        path: '/notifications',
-        element: <Notification/>
-      },
-      {
-        path: '/news',
-        element: <News/>
-      },
-      {
-        path: 'news/:slug',
-        element: <PostPage/>
-      },
-      {
-        path: '/auctions',
-        element: <Auction/>
-      },
-      {
-        path: 'auctions/information/:LandAuctionID',
-        element: <AuctionInfor />
-      },
-      {
-        path: '/search',
-        element: <Search/>
-      },
-      {
-        path: "/userprofile",
-        element: <Profile/>,
-      },
-  
-    ]
-  },
+    const datauser = useSelector((state) => state.account.dataUser);
+    const item = [
+        {
+            path: '/',
+            element: <Layout />,
+            errorElement: <NotFound />,
+            children: [
+                {
+                    index: true,
+                    element: <Home />,
+                },
+                {
+                    path: '/:name',
+                    element: <Home />,
+                },
+                {
+                    path: '/notifications',
+                    element: <Notification />,
+                },
+                {
+                    path: '/news',
+                    element: <News />,
+                },
+                {
+                    path: 'news/:slug',
+                    element: <PostPage />,
+                },
+                {
+                    path: '/auctions',
+                    element: <Auction />,
+                },
+                {
+                    path: 'auctions/information/:LandAuctionID',
+                    element: <AuctionInfor />,
+                },
+                {
+                    path: '/search',
+                    element: <Search />,
+                },
+                {
+                    path: '/userprofile',
+                    element: <Profile />,
+                },
+            ],
+        },
 
-  
-  // {
-  //   path: "/history",
-  //   element: <HistoryOrder/>,
-  // },
-  {
-    path: "/login",
-    element: <Login/>,
-  },
-  {
-    path: "/register",
-    element: <Register/>,
-  },
+        // {
+        //   path: "/history",
+        //   element: <HistoryOrder/>,
+        // },
+        {
+            path: '/login',
+            element: <Login />,
+        },
+        {
+            path: '/register',
+            element: <Register />,
+        },
 
         {
             path: '/forgotPassword',
