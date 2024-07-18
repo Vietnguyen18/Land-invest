@@ -24,7 +24,7 @@ const ModalUploadImage = ({
     const [listDistrict, setListDistrict] = useState([]);
     const [selectedDistrictId, setSelectedDistrictId] = useState(null);
 
-    console.log(selectedDistrictId);
+    console.log("selectedDistrictId", selectedDistrictId);
 
     useEffect(() => {
         const getIdDistrict = async () => {

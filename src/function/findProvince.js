@@ -13,8 +13,8 @@ const fetchProvinceName = async (lat, lon) => {
                 },
             });
             const address = response.data.address;
-            let provinceName = address.state || address.city;
-            let districtName = address.suburb || address.village || address.town || address.city_district || address.county;
+            let provinceName = address.state || address.province || address.city;
+            let districtName = address.county || address.district || address.city_district || address.suburb || address.town || address.village;
   
             if (districtName) {
               districtName = districtName.replace(/district/i, '').trim();

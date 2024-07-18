@@ -38,7 +38,8 @@ import ModalUploadImage from './ModalUploadImage';
 import axios from 'axios';
 import DrawerView from './DrawerView';
 import 'leaflet/dist/leaflet.css';
-import fetchProvinceName from '../../function/findProvince';
+import fetchProvinceName, { getProvince } from '../../function/findProvince';
+import { findClosestDistrict } from '../../function/findClosestDistrict';
 const mapContainerStyle = {
     width: '100%',
     height: 'calc(100vh - 56px)',
@@ -72,13 +73,14 @@ function Home() {
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [isShowModalPrice, setIsShowModalPrice] = useState(false);
     const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
-    const [imageUrl, setImageUrl] = useState('');
-    const [location, setLocation] = useState([]);
+    // const [imageUrl, setImageUrl] = useState('');
+    // const [location, setLocation] = useState([]);
     const [polygon, setPolygon] = useState(null);
     const [listMarker, setListMarker] = useState([]);
     const [provinceName, setProvinceName] = useState('');
+    const [idProvince, setIdProvince] = useState();
     const [selectedMarker, setSelectedMarker] = useState(null);
-    const [selectedDistrict, setSelectedDistrict] = useState(null)
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
 
     // const [coordinates, setCoordinates] = useState([])
     const { lat, lon, coordinates, boundingbox, displayName } = useSelector((state) => state.searchQuery.searchResult);
@@ -98,8 +100,9 @@ function Home() {
     };
 
     const handleSelectedDistrict = (id) => {
-        setSelectedDistrict(id)
-    }
+        // console.log(id + 1)
+        setSelectedDistrict(id);
+    };
 
     const handleCloseModal = () => {
         setIsModalUploadVisible(false);
@@ -176,7 +179,7 @@ function Home() {
     const mapRef = useRef();
 
     const MapEvents = () => {
-        useMapEvents({
+        const mapInstance = useMapEvents({
             click: async (e) => {
                 const { lat, lng } = e.latlng;
                 setSelectedPosition({ lat, lng });
@@ -184,10 +187,30 @@ function Home() {
                 console.log(districtName);
                 setProvinceName(districtName.provinceName);
             },
+            zoomend: () => {
+                if (mapInstance.getZoom() >= 8) {
+                    const center = mapInstance.getCenter();
+                    handleZoomEnd(center.lat, center.lng);
+                }
+            },
         });
+
         return null;
     };
 
+    const handleZoomEnd = async (lat, lng) => {
+        try {
+            const locationInfo = await fetchProvinceName(lat, lng);
+            console.log('Zoom end location info:', locationInfo);
+            const res = await getProvince(locationInfo.provinceName);
+            console.log(res);
+            const data = await findClosestDistrict(res.TinhThanhPhoID, locationInfo.districtName)
+
+            data.found ? setIdProvince(data.districtId) : console.log(data.message)
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const handleClick = (index) => {
         setActiveItem(index);
@@ -209,10 +232,6 @@ function Home() {
             message,
             description,
         });
-    };
-
-    const handleClickMarker = () => {
-        console.log('helooooooooooooooo');
     };
 
     // useEffect(() => {
@@ -240,10 +259,11 @@ function Home() {
     // }, []);
 
     useEffect(() => {
+
         const fetchData = async () => {
             try {
                 const { data } = await axios.get(
-                    'https://apilandinvest.gachmen.org/api/location/list_info_by_district/28',
+                    `https://apilandinvest.gachmen.org/api/location/list_info_by_district/${idProvince}`,
                 );
                 setListMarker(data.data);
                 console.log('listMarker', data.data);
@@ -253,20 +273,17 @@ function Home() {
         };
 
         fetchData();
-    }, []);
+    }, [idProvince]);
 
     useEffect(() => {
         if (coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])) {
-            const leafletCoordinates = coordinates[0].map((coord) => [
-                coord[1], 
-                coord[0], 
-            ]);
+            const leafletCoordinates = coordinates[0].map((coord) => [coord[1], coord[0]]);
             setPolygon(leafletCoordinates);
         } else {
             setPolygon(null);
         }
     }, [coordinates]);
-    
+
     return (
         <div className="home-container">
             {/* <div {...getRootProps()} className="drop--container">
@@ -395,7 +412,7 @@ function Home() {
                 zoom={13}
                 maxZoom={30}
                 whenReady={(map) => {
-                    mapRef.current = map;
+                    mapRef.current = map.target;
                 }}
             >
                 <MapEvents />
