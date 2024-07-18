@@ -40,6 +40,8 @@ import DrawerView from './DrawerView';
 import 'leaflet/dist/leaflet.css';
 import fetchProvinceName, { getProvince } from '../../function/findProvince';
 import { findClosestDistrict } from '../../function/findClosestDistrict';
+import { formatToVND } from '../../function/formatToVND';
+import { parseCoordination } from '../../function/parseCondination';
 const mapContainerStyle = {
     width: '100%',
     height: 'calc(100vh - 56px)',
@@ -47,7 +49,7 @@ const mapContainerStyle = {
 const center = [21.136663, 105.7473446];
 
 const customIcon = new L.Icon({
-    iconUrl: require('../../assets/icon.png'),
+    iconUrl: require('../../assets/marker.png'),
     iconSize: [38, 38], // size of the icon
     iconAnchor: [22, 38], // point of the icon which will correspond to marker's location
     popupAnchor: [-3, -38], // point from which the popup should open relative to the iconAnchor
@@ -82,8 +84,10 @@ function Home() {
     const [selectedMarker, setSelectedMarker] = useState(null);
     const [selectedDistrict, setSelectedDistrict] = useState(null);
 
-    // const [coordinates, setCoordinates] = useState([])
-    const { lat, lon, coordinates, boundingbox, displayName } = useSelector((state) => state.searchQuery.searchResult);
+    // const [coordinates, setCoordinates] = useState([]);
+    const [imageUrl, setImageUrl] = useState();
+    const [location, setLocation] = useState([]);
+    const { lat, lon, boundingbox ,coordinates ,displayName } = useSelector((state) => state.searchQuery.searchResult);
     console.log(lat, lon);
     const { BaseLayer } = LayersControl;
     const handleSliderChange = (event) => {
@@ -187,7 +191,7 @@ function Home() {
                 console.log(districtName);
                 setProvinceName(districtName.provinceName);
             },
-            zoomend: () => {
+            zoom: () => {
                 if (mapInstance.getZoom() >= 8) {
                     const center = mapInstance.getCenter();
                     handleZoomEnd(center.lat, center.lng);
@@ -204,9 +208,9 @@ function Home() {
             console.log('Zoom end location info:', locationInfo);
             const res = await getProvince(locationInfo.provinceName);
             console.log(res);
-            const data = await findClosestDistrict(res.TinhThanhPhoID, locationInfo.districtName)
+            const data = await findClosestDistrict(res.TinhThanhPhoID, locationInfo.districtName);
 
-            data.found ? setIdProvince(data.districtId) : console.log(data.message)
+            data.found ? setIdProvince(data.districtId) : console.log(data.message);
         } catch (error) {
             console.error(error);
         }
@@ -234,32 +238,39 @@ function Home() {
         });
     };
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             const response = await fetch(
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                //  const response = await fetch(
     //                 'https://apilandinvest.gachmen.org/api/landauctions/search/1?fbclid=IwZXh0bgNhZW0CMTAAAR1oHBpYlbHJfOuEWlCwGbcdC1csdl9wM2F0ZEWSrIcZK3_QAj3Weewb6pY_aem_sNNcYgwRijyY_JiZ2dUsww',
     //             );
     //             const data = await response.json();
-    //             if (data.status === 200 && data.message.length > 0) {
-    //                 const imageUrl = data.message[0].imageHttp;
-    //                 const location = JSON.parse(data.message[0].location);
-    //                 const coordinates = data.message[0].coordinates;
-    //                 setImageUrl(imageUrl);
-    //                 setLocation(location);
-    //                 // setCoordinates(coordinates);
-    //                 console.log(imageUrl, [location]);
-    //             }
-    //         } catch (error) {
-    //             console.error('Error fetching the data', error);
-    //         }
-    //     };
+                const { data } = await axios.post(
+                    'https://apilandinvest.gachmen.org/api/districts/search/',
+                    { district: 'mai châu' },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    },
+                );
 
-    //     fetchData();
-    // }, []);
+                // console.log(JSON.parse(data[0]?.location));
+                const imageUrl = data[0]?.imageHttp;
+                const location = (JSON.parse(data[0]?.location));
+                const coordinates = data[0].coordation;
+                setImageUrl(imageUrl);
+                setLocation(location);
+                // setCoordinates(coordinates);
+            } catch (error) {
+                console.error('Error fetching the data:', error);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 const { data } = await axios.get(
@@ -433,8 +444,8 @@ function Home() {
                         />
                     </BaseLayer>
                 </LayersControl>
-                {/* {imageUrl && location && <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />} */}
-                {image &&
+                 {imageUrl && location && <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />}
+                {/* {image &&
                     boundingbox?.length > 0 &&
                     image.map((item, index) => (
                         <div key={index}>
@@ -447,7 +458,7 @@ function Home() {
                                 opacity={opacity}
                             />
                         </div>
-                    ))}
+                    ))} */}
                 {selectedPosition && (
                     <Marker position={selectedPosition}>
                         <Popup>Vị trí đã chọn</Popup>
@@ -467,9 +478,12 @@ function Home() {
                         <Marker key={marker.id} position={[marker.latitude, marker.longitude]} icon={customIcon}>
                             <Popup>
                                 <div>
-                                    <h3>{marker.description}</h3>
-                                    <p>Price/m²: {marker.priceOnM2}</p>
+                                    <h3 style={{ fontWeight: 600 }}>{marker.description}</h3>
+                                    <p style={{ fontSize: 20, fontWeight: 400, margin: '12px 0' }}>
+                                        Giá/m²: {formatToVND(marker.priceOnM2)}
+                                    </p>
                                     <button
+                                        className="button--detail"
                                         onClick={() => {
                                             setIsDrawerVisible(true);
                                             setSelectedMarker(marker);
@@ -487,6 +501,7 @@ function Home() {
                     <DrawerView
                         isDrawerVisible={isDrawerVisible}
                         closeDrawer={closeDrawer}
+                        addAt={selectedMarker.addAt}
                         images={selectedMarker.imageLink}
                         description={selectedMarker.description}
                         priceOnM2={selectedMarker.priceOnM2}

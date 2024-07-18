@@ -1,30 +1,48 @@
 import { Carousel, Drawer, Image } from 'antd';
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import './DrawerView.scss';
+import { calculateDate } from '../../../function/calculateDate';
+import { formatToVND } from '../../../function/formatToVND';
 
-const DrawerView = ({ isDrawerVisible, closeDrawer, images, description, priceOnM2 }) => {
+const DrawerView = ({ isDrawerVisible, closeDrawer, images, description, priceOnM2, addAt }) => {
+    const [currentSlide, setCurrentSlide] = useState(0);
+
+    const nextSlide = () => {
+        setCurrentSlide((prev) => (prev + 1) % images.length);
+    };
+
+    const prevSlide = () => {
+        setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
+    };
     return (
-        <Drawer title={description} placement="left" closable={false} onClose={closeDrawer} open={isDrawerVisible}>
+        <Drawer placement="bottom" closable={false} onClose={closeDrawer} open={isDrawerVisible}>
             <div className="drawer--content__container">
-                <div className="">
+                <div className="drawer--content__detail">
                     <h3>{description}</h3>
-                    <span>Giá/m²: {priceOnM2}</span>
+                    <p>Loại tài sản: Đất bán</p>
+                    <p>Giá/m²: {formatToVND(priceOnM2)}</p>
+                    <p>Ngày đăng: {calculateDate(addAt)}</p>
+                    <p>Diện tích: 1000m2</p>
                 </div>
                 <div className="drawer__image">
-                    <Image.PreviewGroup
-                        preview={{
-                            onChange: (current, prev) => console.log(`current index: ${current}, prev index: ${prev}`),
-                        }}
-                    >
+                    <div className="slider" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
                         {images.map((image) => (
-                            <Image
-                                key={image.id}
-                                src={`data:image/png;base64,${image.imageLink}`}
-                                alt={`Image ${image.id}`}
-                                className="drawer--content__image"
-                            />
+                            <div key={image.id} className="slide">
+                                <Image
+                                    src={`data:image/png;base64,${image.imageLink}`}
+                                    alt={`Image ${image.id}`}
+                                    className="drawer--content__image"
+                                    preview={false}
+                                />
+                            </div>
                         ))}
-                    </Image.PreviewGroup>
+                    </div>
+                    <button className="nav-button prev" onClick={prevSlide}>
+                        &#10094;
+                    </button>
+                    <button className="nav-button next" onClick={nextSlide}>
+                        &#10095;
+                    </button>
                 </div>
             </div>
         </Drawer>
