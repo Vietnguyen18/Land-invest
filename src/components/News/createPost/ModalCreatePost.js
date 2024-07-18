@@ -1,7 +1,7 @@
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import './ModalCreatePost.scss';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import importImage from '../../../assets/importImage.png';
 import importIcon from '../../../assets/importIcon.png';
@@ -30,8 +30,6 @@ const ModalCreatePost = (props) => {
     const [inputValueContent, setInputValueContent] = useState('');
     const [selectedValueGroup, setSelectedValueGroup] = useState('');
     // const [showSecondTextarea, setShowSecondTextarea] = useState(false);
-    const [postLatitude, setPostLatitude] = useState(10);
-    const [postLongitude, setPostLongitude] = useState(100);
     const textareaTitleRef = useRef(null);
     const textareaContentRef = useRef(null);
     const datauser = useSelector((state) => state.account.dataUser);
@@ -40,8 +38,6 @@ const ModalCreatePost = (props) => {
     console.log("listGroups post: ", listGroups)
     const [apiUser, setApiUser] = useState([]); // user khi đăng nhập thành công
  
-   
-
     const editorStyle = {
         height: '200px', // Điều chỉnh chiều cao
         maxWidth: '100%' // Điều chỉnh chiều rộng
@@ -65,7 +61,7 @@ const ModalCreatePost = (props) => {
             return;
         }
     
-        const res = await CreatePost(selectedValueGroup, inputValueTitle, inputValueContent, postLatitude, postLongitude, {
+        const res = await CreatePost(selectedValueGroup, inputValueTitle, inputValueContent, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -193,14 +189,6 @@ const ModalCreatePost = (props) => {
                                 ref={textareaTitleRef}
                                 style={{ cursor: 'pointer', padding:'8px 20px', margin:'auto 0' , height:'40px', border:'solid 1px #ccc', marginBottom:'10px' }}
                             ></textarea>
-                            {/* <textarea
-                                className="post-new-input"
-                                onChange={handleInputContentChange}
-                                ref={textareaContentRef}
-                                value={inputValueContent}
-                                placeholder="Nội dung..."
-                                style={{ cursor: 'pointer',padding:'8px 20px', margin:'auto 0' , height:'40px', border:'solid 1px #ccc',marginTop:'20px' }}
-                            ></textarea> */}
                             <div style={editorStyle}><ReactQuill placeholder="Nội dung..." style={editorContainerStyle} className="content-post" value={inputValueContent} onChange={handleInputContentChange} modules={modules} /></div>
                         </div>
                         

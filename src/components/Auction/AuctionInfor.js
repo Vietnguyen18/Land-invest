@@ -18,10 +18,8 @@ const AuctionInfor = () => {
 
 // state
   const {LandAuctionID} = useParams()
-  console.log('LandAuctionID',LandAuctionID);
   const [auctionInfor, setAuctionInfor] = useState(null);
   const [isShowModalComment, setIsShowModalComment] = useState(false)
-  // const [appraisalData, setAppraisalData] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
   console.log('selectedLocation',selectedLocation);
   const { BaseLayer } = LayersControl;
@@ -110,10 +108,6 @@ const AuctionInfor = () => {
     setIsShowModalComment(false);
 };
 
-//data modal
-// const handleAppraisalChange = (event) => {
-//   setAppraisalData(event.target.value);
-// };
 
 const CloseModal = () => {
   closeModal();
@@ -244,7 +238,7 @@ const MapEvents = () => {
                                                 </BaseLayer>
                                                 <BaseLayer name="Map vệ tinh">
                                                     <TileLayer
-                                                        url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                                                        url="http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
                                                         attribution='&copy; <a href="https://maps.google.com">Google Maps</a> contributors'
                                                         subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
                                                     />
@@ -267,8 +261,6 @@ const MapEvents = () => {
                                     <textarea onClick={handleShowModal} ></textarea>
                                 </div>
                                 {isShowModalComment && <ModalComponent 
-                                        // appraisalData={appraisalData}
-                                        // handleAppraisalChange={handleAppraisalChange}
                                         CloseModal={CloseModal}
                                         IDAuction={LandAuctionID}
                                 />}

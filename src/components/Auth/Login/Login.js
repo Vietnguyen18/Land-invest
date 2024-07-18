@@ -25,8 +25,6 @@ const Login = () => {
       console.log("res", res);
       localStorage.setItem('access_token', res.data.access_token);
       localStorage.setItem('refresh_token', res.data.refreshtoken);
-      // console.log("access_token", res.data.access_token);
-      // console.log("refresh_token", res.data.refreshtoken);
       document.cookie = `access_token_cookie=${res.data.access_token}; path=/`;
       
       dispatch(doLoginAction(JSON.parse(res.config.data)));
@@ -41,22 +39,6 @@ const Login = () => {
         duration: 5
       })
     }
-
-    // setIsSubmit(false);
-    // console.log("res",res)
-    // if(res?.data) {
-    //   localStorage.setItem('access_token',res.data.access_token)
-    //   dispatch(doLoginAction(res.data.user))
-    //   message.success('Đăng nhập tài khoản thành công!');
-    //   navigate('/')
-    // }else{
-    //   notification.error({
-    //     message:'Có lỗi xáy ra',
-    //     description:
-    //       res.message && Array.isArray(res.message) ? res.message[0] :res.message[1],
-    //     duration: 5
-    //   })
-    // }
   }
   return (
    <>

@@ -1,5 +1,3 @@
-
-
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import accountReducer from '../redux/account/accountSlice';
 import listBoxReducer from './listForum/lisForumSlice';
@@ -46,4 +44,4 @@ const store = configureStore({
 
 const persistor = persistStore(store);
 
-export { store, persistor};
+export { store, persistor };
