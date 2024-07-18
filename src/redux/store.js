@@ -21,7 +21,6 @@ const persistConfig = {
   key: 'root',
   version: 1,
   storage,
-  //blacklist: ['account'] // account will not be persisted
 }
 
 const rootReducer = combineReducers({
@@ -45,4 +44,4 @@ const store = configureStore({
 
 const persistor = persistStore(store);
 
-export { store, persistor };
+export { store, persistor};

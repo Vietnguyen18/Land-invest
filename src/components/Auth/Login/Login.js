@@ -1,5 +1,5 @@
 import './Login.scss'
-import { Button, Checkbox, Divider, Form, Input, message, notification } from 'antd';
+import { Button, Form, Input, message, notification } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -22,14 +22,12 @@ const Login = () => {
     const res = await callLogin(Username, Password);
     setIsSubmit(false);
     if(res) {
-
       console.log("res", res);
       localStorage.setItem('access_token', res.data.access_token);
       localStorage.setItem('refresh_token', res.data.refreshtoken);
-      console.log("access_token", res.data.access_token);
-      console.log("refresh_token", res.data.refreshtoken);
+      // console.log("access_token", res.data.access_token);
+      // console.log("refresh_token", res.data.refreshtoken);
       document.cookie = `access_token_cookie=${res.data.access_token}; path=/`;
-      console.log('document.cookie', document.cookie);
       
       dispatch(doLoginAction(JSON.parse(res.config.data)));
       dispatch(doLoginDataUser(res.data));
@@ -44,21 +42,6 @@ const Login = () => {
       })
     }
 
-    // setIsSubmit(false);
-    // console.log("res",res)
-    // if(res?.data) {
-    //   localStorage.setItem('access_token',res.data.access_token)
-    //   dispatch(doLoginAction(res.data.user))
-    //   message.success('Đăng nhập tài khoản thành công!');
-    //   navigate('/')
-    // }else{
-    //   notification.error({
-    //     message:'Có lỗi xáy ra',
-    //     description:
-    //       res.message && Array.isArray(res.message) ? res.message[0] :res.message[1],
-    //     duration: 5
-    //   })
-    // }
   }
   return (
    <>
@@ -158,80 +141,6 @@ const Login = () => {
         
     </div>
 
-      {/* <div className="register-page" >
-          <h3 style={{textAlign: 'center'}}>Đăng ký người dùng mới</h3>
-          <Divider/>
-          <Form
-              name="basic"
-              labelCol={{
-                span: 8,
-              }}
-              wrapperCol={{
-                span: 24,
-              }}
-              style={{
-                maxWidth: 400,
-                margin: '0 auto'
-              }}
-              initialValues={{
-                remember: true,
-              }}
-              onFinish={onFinish}
-              autoComplete="off"
-            >
-              
-  
-              <Form.Item
-                labelCol={{
-                  span: 24,
-                }}
-                label="email"
-                name="username"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input your email!',
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-  
-              <Form.Item
-                labelCol={{
-                  span: 24,
-                }}            
-                label="Password"
-                name="password"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input your password!',
-                  },
-                ]}
-              >
-                <Input.Password />
-              </Form.Item>
-  
-              
-  
-              
-  
-              <Form.Item
-                wrapperCol={{
-                  offset: 10,
-                  span: 24,
-                }}
-              >
-                <Button type="primary" htmlType="Đăng nhập" loading={isSubmit}>
-                  Submit
-                </Button>
-              </Form.Item>
-            </Form>
-  
-          <h3 style={{textAlign: 'center'}}>Bạn chưa có tài khoản <span onClick={()=>{navigate('/register')}}>Đăng ký</span></h3>
-  
-    </div> */}
    </>
   )
 

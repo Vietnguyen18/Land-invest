@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 const News = (props) => {
     const navigate = useNavigate();
     const [listViewBox, setListViewBox] = useState([])
+    console.log('listViewBox',listViewBox);
     const [listCheckOnline, setListCheckOnline] = useState({})
     const [listViewPost, setListViewPost] = useState([])
     const [inputValue, setInputValue] = useState('');

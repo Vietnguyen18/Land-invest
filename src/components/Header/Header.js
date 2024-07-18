@@ -1,7 +1,7 @@
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, NavLink, useNavigate} from 'react-router-dom';
 import logo from '../../assets/channels4_profile.jpg';
 
 import { IoIosNotifications } from 'react-icons/io';
@@ -11,7 +11,7 @@ import { memo, useEffect, useState } from 'react';
 import ModalNotification from '../Auth/ModalNotification';
 import { useDispatch, useSelector } from 'react-redux';
 import { doLogoutAction } from '../../redux/account/accountSlice';
-import { callLogout, logoutUser, searchQueryAPI } from '../../services/api';
+import { callLogout, fetchAccount} from '../../services/api';
 import { message, notification } from 'antd';
 import axios from 'axios';
 import { useDebounce } from 'use-debounce';
@@ -30,15 +30,42 @@ const Header = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const isAuthenticated = useSelector((state) => state.account.isAuthenticated);
-    const user = useSelector((state) => state.account.Users);
     const datauser = useSelector((state) => state.account.dataUser);
-
+    const user = useSelector((state) => state.account.Users);
     const [isShowModalLogin, setIsShowModalLogin] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResult, setSearchResult] = useState([]);
     const [debouncedInputSearch] = useDebounce(searchQuery, 300);
     const [isLoading, setIsLoading] = useState(false);
+    const [apiUser, setApiUser] = useState([]); // user khi đăng nhập thành công
+ 
+    //User
+    useEffect(() => {
+        const fetchUserData = async () => {
+          try {
+            const response = await fetchAccount();
+            const fetchedUser = response.find(user => user.userid === datauser.UserID);
+            if (fetchedUser) {
+              setApiUser(fetchedUser);
+            } else {
+              notification.error({
+                message: 'Error',
+                description: 'User not found'
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+            notification.error({
+              message: 'Error',
+              description: 'Failed to fetch user data'
+            });
+          }
+        };
   
+        fetchUserData();
+      }, [datauser.UserID]);
+
+
 
     let items = [
         {
@@ -66,42 +93,14 @@ const Header = () => {
         setIsShowModalLogin(false);
     };
 
-    function getCookie(cookieName) {
-        const cookies = document.cookie.split('; ');
-        for (const cookie of cookies) {
-            const [name, value] = cookie.split('=');
-            if (name === cookieName) {
-                return value;
-            }
-        }
-        return null;
-    }
-
     const handleLogOut = async () => {
-        // const token = localStorage.getItem('access_token');
-        // if (!token) {
-        //     notification.error({
-        //         message: 'Lỗi xác thực',
-        //         description: 'Không tìm thấy token. Vui lòng đăng nhập lại.'
-        //     });
-        //     return;
-        // }
-        const res = await callLogout();
-        res.headers = {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        };
+        const {Username, Password} = user
+        const res = await callLogout(Username, Password);
+        console.log('res',res);
         if (res) {
-            // res.headers= {
-            //     'Authorization': `Bearer ${token}`
-            // }
-            // console.log("refresh_token logout",localStorage.getItem('refresh_token'))
-            // console.log("access_token logout",localStorage.getItem('access_token'))
-            console.log('res.headers', res.headers);
             dispatch(doLogoutAction());
             navigate('/');
             message.success('Đăng xuất thành công!');
-            // localStorage.removeItem('access_token');
-            // localStorage.removeItem('refresh_token');
         } else {
             notification.error({
                 message: 'Có lỗi xáy ra',
@@ -238,16 +237,12 @@ const Header = () => {
                                                 }}
                                             >
                                                 <Space>
-                                                    <Avatar src={logo} />
-                                                    {user?.Username}
+                                                    <Avatar src={apiUser?.avatarLink} />
+                                                    {apiUser?.FullName}
                                                 </Space>
                                             </a>
                                         </Dropdown>
                                     )
-                                    // <>
-                                    // <span style={{color:"#fff"}}><span style={{marginLeft:"2px"}}>{user.Username}</span></span>
-                                    // <button className='btn' onClick={()=>handleLogOut()}>Đăng xuất</button>
-                                    // </>
                                 }
                             </div>
                         </div>

@@ -11,12 +11,14 @@ import ModalComponent from './ModalComponent/ModalComponent'
 import { FaArrowAltCircleLeft } from 'react-icons/fa'
 import { LayersControl, MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
 import VideoPlayer from './VideoPlayer/VideoPlayer'
+import ListComment from './ListComment/ListComment'
 
 
 const AuctionInfor = () => {
 
 // state
   const {LandAuctionID} = useParams()
+  console.log('LandAuctionID',LandAuctionID);
   const [auctionInfor, setAuctionInfor] = useState(null);
   const [isShowModalComment, setIsShowModalComment] = useState(false)
   // const [appraisalData, setAppraisalData] = useState('');
@@ -271,6 +273,11 @@ const MapEvents = () => {
                                         IDAuction={LandAuctionID}
                                 />}
                                </div>
+                            </div>
+                            <div className='infor-item list-comment'>
+                                <div className='list-comment-item'>
+                                     <ListComment IDAuction={LandAuctionID}/>
+                                </div>
                             </div>
                         <Button variant='primary' type='submit' onClick={handleExit}>Quay lại</Button> 
                         <div className=' infortest'>

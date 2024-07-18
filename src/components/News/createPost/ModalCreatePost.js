@@ -10,7 +10,7 @@ import importTag from '../../../assets/importTag.png';
 import { LuMoreHorizontal } from "react-icons/lu";
 import { Avatar, Space, message, notification } from 'antd';
 import { useSelector } from 'react-redux';
-import { CreatePost } from '../../../services/api';
+import { CreatePost, fetchAccount } from '../../../services/api';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Import Quill's CSS
 
@@ -29,16 +29,18 @@ const ModalCreatePost = (props) => {
     const [inputValueTitle, setInputValueTitle] = useState('');
     const [inputValueContent, setInputValueContent] = useState('');
     const [selectedValueGroup, setSelectedValueGroup] = useState('');
-    const [showSecondTextarea, setShowSecondTextarea] = useState(false);
+    // const [showSecondTextarea, setShowSecondTextarea] = useState(false);
     const [postLatitude, setPostLatitude] = useState(10);
     const [postLongitude, setPostLongitude] = useState(100);
     const textareaTitleRef = useRef(null);
     const textareaContentRef = useRef(null);
-    const navigate = useNavigate();
-    const user = useSelector(state => state.account.Users);
-    console.log('dataUser1',user);
+    const datauser = useSelector((state) => state.account.dataUser);
+    // const navigate = useNavigate();
     const listGroups = useSelector((state) => state.listbox.listgroup);
     console.log("listGroups post: ", listGroups)
+    const [apiUser, setApiUser] = useState([]); // user khi đăng nhập thành công
+ 
+   
 
     const editorStyle = {
         height: '200px', // Điều chỉnh chiều cao
@@ -127,9 +129,36 @@ const ModalCreatePost = (props) => {
     const handleInputContentChange = (value) => {
         setInputValueContent(value);
     };
-    const handleTextareaClick = () => {
-        setShowSecondTextarea(true);
-    };
+    // const handleTextareaClick = () => {
+    //     setShowSecondTextarea(true);
+    // };
+
+
+     //User
+     useEffect(() => {
+        const fetchUserData = async () => {
+          try {
+            const response = await fetchAccount();
+            const fetchedUser = response.find(user => user.userid === datauser.UserID);
+            if (fetchedUser) {
+              setApiUser(fetchedUser);
+            } else {
+              notification.error({
+                message: 'Error',
+                description: 'User not found'
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+            notification.error({
+              message: 'Error',
+              description: 'Failed to fetch user data'
+            });
+          }
+        };
+  
+        fetchUserData();
+      }, [datauser.UserID]);
 
     return (
         <Modal className='modal-auth' aria-labelledby="contained-modal-title-vcenter"
@@ -142,8 +171,8 @@ const ModalCreatePost = (props) => {
                     <div className="post-new">
                         <div className="post-new-avatar">
                             <Space>
-                                <Avatar src={user?.avatarLink} />
-                                {user?.Username}
+                                <Avatar src={apiUser?.avatarLink} />
+                                {apiUser?.FullName}
                             </Space>
                             <select className='post-new-select' value={selectedValueGroup} onChange={handleChangeValueGroup}>
                                 {listGroups && 

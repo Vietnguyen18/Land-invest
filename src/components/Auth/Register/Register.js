@@ -431,6 +431,7 @@ const Register = () => {
 
   const onFinish = async (values) => {
     const { Username, Fullname, Password, Gender, Latitude, Longitude, AvatarLink, Email, LastLoginIP } = values;
+    console.log('value', values);
     setIsSubmit(true);
     const res = await callRegister(Username, Fullname, Password, Gender, Latitude, Longitude, AvatarLink, Email, LastLoginIP);
     setIsSubmit(false);
