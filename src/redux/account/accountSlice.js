@@ -1,19 +1,18 @@
 import {createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-
   isAuthenticated: false,
   Users: 
   {
     Username:"",
     FullName:"",
     Password:"",
-    Gender:"",
-    Latitude: null,
-    Longitude: null,
+    Gender:"Nam",
+    Latitude:10.54,
+    Longitude:20.435,
     avatarLink: null,
     Email:"",
-    LastLoginIP:""
+    LastLoginIP:"127.0.0.1"
   },
   dataUser: {}
 };

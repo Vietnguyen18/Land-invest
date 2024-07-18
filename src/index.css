@@ -1,5 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+* {
+    font-family: 'Mulish', sans-serif !important;
+    font-optical-sizing: auto;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 .app-content {
-    background-color: #1E252B;
+    background-color: #1e252b;
     height: 100vh;
     overflow: auto;
+}
+
+input[type='number'] {
+    background-color: transparent;
+    border: none;
+    color: inherit;
+    flex: 1;
+    -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type='number']:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+textarea {
+    background-color: transparent;
+    border: none;
+    color: inherit;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    resize: none !important;
+    outline: none;
+    overflow: auto;
+}
+
+textarea:focus-visible {
+    box-shadow: none;
 }
