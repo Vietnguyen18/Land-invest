@@ -1,7 +1,7 @@
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import { Link, NavLink, useNavigate} from 'react-router-dom';
+import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import logo from '../../assets/channels4_profile.jpg';
 
 import { IoIosNotifications } from 'react-icons/io';
@@ -11,7 +11,7 @@ import { memo, useEffect, useState } from 'react';
 import ModalNotification from '../Auth/ModalNotification';
 import { useDispatch, useSelector } from 'react-redux';
 import { doLogoutAction } from '../../redux/account/accountSlice';
-import { callLogout, fetchAccount} from '../../services/api';
+import { callLogout, fetchAccount, logoutUser, searchQueryAPI } from '../../services/api';
 import { message, notification } from 'antd';
 import axios from 'axios';
 import { useDebounce } from 'use-debounce';
@@ -93,8 +93,20 @@ const Header = () => {
         setIsShowModalLogin(false);
     };
 
+    // function getCookie(cookieName) {
+    //     const cookies = document.cookie.split('; ');
+    //     for (const cookie of cookies) {
+    //         const [name, value] = cookie.split('=');
+    //         if (name === cookieName) {
+    //             return value;
+    //         }
+    //     }
+    //     return null;
+    // }
+
     const handleLogOut = async () => {
         const {Username, Password} = user
+        console.log('user', Username, Password);
         const res = await callLogout(Username, Password);
         console.log('res',res);
         if (res) {
