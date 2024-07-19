@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from 'react'
 import './ListComment.scss'
 import { Container } from 'react-bootstrap'
-import { DeleteCommentAuction, EditCommentAuction, fetchAccount, fetchListComment } from '../../../services/api'
+import { DeleteCommentAuction, EditCommentAuction, fetchListComment } from '../../../services/api'
 import { useSelector } from 'react-redux'
 import { notification } from 'antd'
 import { IoEllipsisVerticalCircleSharp } from 'react-icons/io5'
@@ -96,15 +96,6 @@ const ListComment = ({IDAuction}) => {
                         </div>
                       )}
                   <div className='cmt-body'>
-                      {/* <textarea 
-                        className='cmt-textarea'
-                        value={e.comment}
-                        // onChange={handleEditComment}
-                        readOnly
-                        key={index}
-                      >
-                         {e.content}
-                      </textarea> */}
                       {editing === e.idComment  ? (
                             <>
                             <textarea
