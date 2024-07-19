@@ -30,7 +30,7 @@ export const accountSlice = createSlice({
 
     doLGetAccountAction: (state, action) => {
       state.isAuthenticated = true;
-      state.Users = action.payload.Users;
+      state.Users = action.payload;
     },
 
     doLogoutAction: (state) => {

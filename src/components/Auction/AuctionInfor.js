@@ -258,7 +258,7 @@ const MapEvents = () => {
                             <div className='infor-item'>
                                 <h5>Thông tin thẩm định, đánh giá</h5>
                                 <div className='box-comment'>
-                                    <textarea onClick={handleShowModal} ></textarea>
+                                    <textarea onClick={handleShowModal} readOnly></textarea>
                                 </div>
                                 {isShowModalComment && <ModalComponent 
                                         CloseModal={CloseModal}

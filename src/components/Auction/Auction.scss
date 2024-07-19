@@ -74,6 +74,9 @@
                                 background: #10B700;
         
                         }
+                        input[type='number'] {
+                                background-color: #fff;
+                            }
                 } 
 
         }
@@ -197,7 +200,7 @@
                                                 margin: 20px;
                                                 textarea{
                                                         width: 100%;
-                                                        height: 150px;
+                                                        height: 90px;
                                                         background-color: #262D34;
                                                         border: none;
                                                         box-shadow: 5px 1px 15px #000;
