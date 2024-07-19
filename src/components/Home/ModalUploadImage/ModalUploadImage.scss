@@ -41,6 +41,38 @@
         align-items: center;
         gap: 18px;
         margin: 0 auto;
+        .content--input__image {
+            width: 100%;
+
+            & input {
+                width: 100%;
+                padding: 4px 8px;
+                border-radius: 6px;
+            }
+
+            & .content__images {
+                margin-top: 18px;
+            }
+            
+            & .content__images .content__image {
+                height: 150px;
+                object-fit: cover;
+                // transition: all 0.3 ease-in-out;
+
+              
+            }
+            & .ant-image {
+                width: 100%;
+                // margin: 0 10px;
+            }
+    
+            & .slick-slide > div {
+                margin: 0 10px;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+        }
+
         .content__link {
             box-shadow: 8px 4px 20px 0px rgba(0, 0, 0, 0.5);
             width: 100%;
@@ -70,7 +102,7 @@
             align-items: center;
             border-radius: 6px;
             padding: 0 24px;
-            & span {
+            & label {
                 display: block;
                 font-weight: 400;
                 line-height: 26px;
@@ -78,8 +110,8 @@
             }
             & input {
                 flex: 1;
-                text-align: right;
-                padding: 0 4px;
+                text-align: left;
+                padding: 0 8px;
             }
 
             & input[type='number'] {
@@ -133,6 +165,16 @@
                 flex: 1;
                 text-align: left;
                 // padding: 0 4px;
+            }
+        }
+        & .filterByHouse {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+
+            & label {
+                margin: 0 !important;
             }
         }
     }

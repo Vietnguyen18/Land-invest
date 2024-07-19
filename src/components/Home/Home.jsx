@@ -87,8 +87,10 @@ function Home() {
     // const [coordinates, setCoordinates] = useState([]);
     const [imageUrl, setImageUrl] = useState();
     const [location, setLocation] = useState([]);
-    const { lat, lon, boundingbox ,coordinates ,displayName } = useSelector((state) => state.searchQuery.searchResult);
-    console.log(lat, lon);
+    const [coodination, setCoodination] = useState([]);
+    const { lat, lon, boundingbox, coordinates, displayName } = useSelector((state) => state.searchQuery.searchResult);
+    const mapData = useSelector((state) => state.map.data);
+
     const { BaseLayer } = LayersControl;
     const handleSliderChange = (event) => {
         setOpacity(event.target.value);
@@ -116,35 +118,35 @@ function Home() {
         setIsDrawerVisible(false);
     };
 
-    const onDrop = useCallback((acceptedFiles) => {
-        const file = acceptedFiles[0];
-        console.log('File', file);
+    // const onDrop = useCallback((acceptedFiles) => {
+    //     const file = acceptedFiles[0];
+    //     console.log('File', file);
 
-        if (file && file.type.startsWith('image/')) {
-            const img = new Image();
-            img.onload = () => {
-                URL.revokeObjectURL(img.src);
-                setImage((prev) => [...prev, img]);
-                setImageSize({
-                    width: img.width,
-                    height: img.height,
-                });
-                setCurrentSize({ width: img.width, height: img.height });
-                // setIsLoading(false);
-            };
+    //     if (file && file.type.startsWith('image/')) {
+    //         const img = new Image();
+    //         img.onload = () => {
+    //             URL.revokeObjectURL(img.src);
+    //             setImage((prev) => [...prev, img]);
+    //             setImageSize({
+    //                 width: img.width,
+    //                 height: img.height,
+    //             });
+    //             setCurrentSize({ width: img.width, height: img.height });
+    //             // setIsLoading(false);
+    //         };
 
-            img.onerror = (error) => {
-                console.error('Error loading image:', error);
-                // setIsLoading(false);
-            };
+    //         img.onerror = (error) => {
+    //             console.error('Error loading image:', error);
+    //             // setIsLoading(false);
+    //         };
 
-            img.src = URL.createObjectURL(file);
-        } else {
-            console.error('Accepted file is not an image');
-        }
-    }, []);
+    //         img.src = URL.createObjectURL(file);
+    //     } else {
+    //         console.error('Accepted file is not an image');
+    //     }
+    // }, []);
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: 'image/*' });
+    // const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: 'image/*' });
 
     useEffect(() => {
         if (imageSize.width && imageSize.height) {
@@ -187,9 +189,9 @@ function Home() {
             click: async (e) => {
                 const { lat, lng } = e.latlng;
                 setSelectedPosition({ lat, lng });
-                const districtName = await fetchProvinceName(lat, lng);
-                console.log(districtName);
-                setProvinceName(districtName.provinceName);
+                const locationInfo = await fetchProvinceName(lat, lng);
+                console.log(locationInfo);
+                setProvinceName(locationInfo);
             },
             zoom: () => {
                 if (mapInstance.getZoom() >= 8) {
@@ -238,37 +240,47 @@ function Home() {
         });
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                //  const response = await fetch(
-    //                 'https://apilandinvest.gachmen.org/api/landauctions/search/1?fbclid=IwZXh0bgNhZW0CMTAAAR1oHBpYlbHJfOuEWlCwGbcdC1csdl9wM2F0ZEWSrIcZK3_QAj3Weewb6pY_aem_sNNcYgwRijyY_JiZ2dUsww',
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+
+    //             const { data } = await axios.post(
+    //                 'https://apilandinvest.gachmen.org/api/districts/search/',
+    //                 { district: 'mai châu' },
+    //                 {
+    //                     headers: {
+    //                         'Content-Type': 'application/json',
+    //                     },
+    //                 },
     //             );
-    //             const data = await response.json();
-                const { data } = await axios.post(
-                    'https://apilandinvest.gachmen.org/api/districts/search/',
-                    { district: 'mai châu' },
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    },
-                );
 
-                // console.log(JSON.parse(data[0]?.location));
-                const imageUrl = data[0]?.imageHttp;
-                const location = (JSON.parse(data[0]?.location));
-                const coordinates = data[0].coordation;
-                setImageUrl(imageUrl);
-                setLocation(location);
-                // setCoordinates(coordinates);
-            } catch (error) {
-                console.error('Error fetching the data:', error);
-            }
-        };
+    //             // console.log(JSON.parse(data[0]?.location));
+    //             const imageUrl = data[0]?.imageHttp;
+    //             const location = (JSON.parse(data[0]?.location));
+    //             const coordinates = data[0].coordation;
+    //             setImageUrl(imageUrl);
+    //             setLocation(location);
+    //             // setCoordinates(coordinates);
+    //         } catch (error) {
+    //             console.error('Error fetching the data:', error);
+    //         }
+    //     };
 
-        fetchData();
-    }, []);
+    //     fetchData();
+    // }, []);
+
+    useEffect(() => {
+        if (mapData) {
+            setImageUrl(mapData?.imageHttp);
+            setLocation(JSON.parse(mapData?.location));
+        }
+    }, [mapData]);
+
+    useEffect(() => {
+        if (mapData) {
+            setCoodination(JSON.parse(mapData?.coordation));
+        } else setCoodination(coordinates);
+    }, [coordinates, mapData, mapData?.coordation]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -287,13 +299,13 @@ function Home() {
     }, [idProvince]);
 
     useEffect(() => {
-        if (coordinates && coordinates.length > 0 && Array.isArray(coordinates[0])) {
-            const leafletCoordinates = coordinates[0].map((coord) => [coord[1], coord[0]]);
-            setPolygon(leafletCoordinates);
+        if (coodination && coodination.length > 0 && Array.isArray(coodination[0])) {
+            const leafletcoodination = coodination[0].map((coord) => [coord[1], coord[0]]);
+            setPolygon(leafletcoodination);
         } else {
             setPolygon(null);
         }
-    }, [coordinates]);
+    }, [coodination]);
 
     return (
         <div className="home-container">
@@ -444,7 +456,12 @@ function Home() {
                         />
                     </BaseLayer>
                 </LayersControl>
-                 {imageUrl && location && <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />}
+                {imageUrl && location && (
+                    <>
+                        <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />
+                        {/* <ResetCenterView  /> */}
+                    </>
+                )}
                 {/* {image &&
                     boundingbox?.length > 0 &&
                     image.map((item, index) => (
@@ -530,7 +547,7 @@ function Home() {
                 isModalUpLoadVisible={isModalUpLoadVisible}
                 handleCloseModal={handleCloseModal}
                 selectedPosition={selectedPosition}
-                provinceName={provinceName}
+                locationInfo={provinceName}
                 handleSelectedDistrict={handleSelectedDistrict}
             />
         </div>
