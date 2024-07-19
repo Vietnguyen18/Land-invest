@@ -24,7 +24,7 @@ const fetchProvinceName = async (lat, lon) => {
                 provinceName = provinceName.replace(/province/i, '').trim();
             }
 
-            return {provinceName, districtName} || 'Unknown';
+            return { provinceName, districtName } || 'Unknown';
         }
     } catch (error) {
         console.error('Error fetching province name:', error);
@@ -34,13 +34,15 @@ const fetchProvinceName = async (lat, lon) => {
 
 export const getProvince = async (provinceName) => {
     const provincesList = await fetchProvinces();
-    const province = provincesList.find(province => province.TenTinhThanhPho.toLowerCase() === provinceName.toLowerCase());
+    const province = provincesList.find(
+        (province) => province.TenTinhThanhPho.toLowerCase() === provinceName.toLowerCase(),
+    );
     return province || null;
 };
 
 export const getDistrict = async (provinceId) => {
     const districtsList = await fetchDistrictsByProvinces(provinceId);
     return districtsList || null;
-}
+};
 
 export default fetchProvinceName;

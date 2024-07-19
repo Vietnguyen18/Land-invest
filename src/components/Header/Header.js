@@ -1,7 +1,7 @@
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import { Link, NavLink, useNavigate} from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import logo from '../../assets/channels4_profile.jpg';
 
 import { IoIosNotifications } from 'react-icons/io';
@@ -11,13 +11,14 @@ import { memo, useEffect, useState } from 'react';
 import ModalNotification from '../Auth/ModalNotification';
 import { useDispatch, useSelector } from 'react-redux';
 import { doLogoutAction } from '../../redux/account/accountSlice';
-import { callLogout, fetchAccount} from '../../services/api';
+import { callLogout, fetchAccount } from '../../services/api';
 import { message, notification } from 'antd';
 import axios from 'axios';
 import { useDebounce } from 'use-debounce';
-import  { doSearch } from '../../redux/search/searchSlice';
+import { doSearch } from '../../redux/search/searchSlice';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { ActionIcon, HomeIcon, NewsIcon, SearchIcon, SearchNavbarIcon,NotificationIcon } from '../Icons';
+import { ActionIcon, HomeIcon, NewsIcon, SearchIcon, SearchNavbarIcon, NotificationIcon } from '../Icons';
+import { FaMap } from 'react-icons/fa';
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org/search?';
 const params = {
@@ -32,41 +33,38 @@ const Header = () => {
     const isAuthenticated = useSelector((state) => state.account.isAuthenticated);
     const datauser = useSelector((state) => state.account.dataUser);
     const user = useSelector((state) => state.account.Users);
-    console.log('user',user);
     const [isShowModalLogin, setIsShowModalLogin] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResult, setSearchResult] = useState([]);
     const [debouncedInputSearch] = useDebounce(searchQuery, 300);
     const [isLoading, setIsLoading] = useState(false);
     const [apiUser, setApiUser] = useState([]); // user khi đăng nhập thành công
- 
+
     //User
     useEffect(() => {
         const fetchUserData = async () => {
-          try {
-            const response = await fetchAccount();
-            const fetchedUser = response.find(user => user.userid === datauser.UserID);
-            if (fetchedUser) {
-              setApiUser(fetchedUser);
-            } else {
-              notification.error({
-                message: 'Error',
-                description: 'User not found'
-              });
+            try {
+                const response = await fetchAccount();
+                const fetchedUser = response.find((user) => user.userid === datauser.UserID);
+                if (fetchedUser) {
+                    setApiUser(fetchedUser);
+                } else {
+                    notification.error({
+                        message: 'Error',
+                        description: 'User not found',
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                notification.error({
+                    message: 'Error',
+                    description: 'Failed to fetch user data',
+                });
             }
-          } catch (error) {
-            console.error('Error fetching user data:', error);
-            notification.error({
-              message: 'Error',
-              description: 'Failed to fetch user data'
-            });
-          }
         };
-  
+
         fetchUserData();
-      }, [datauser.UserID]);
-
-
+    }, [datauser.UserID]);
 
     let items = [
         {
@@ -95,10 +93,10 @@ const Header = () => {
     };
 
     const handleLogOut = async () => {
-        const {Username, Password} = user
+        const { Username, Password } = user;
         console.log('user', Username, Password);
         const res = await callLogout(Username, Password);
-        console.log('res',res);
+        console.log('res', res);
         if (res) {
             dispatch(doLogoutAction());
             navigate('/');
@@ -125,7 +123,7 @@ const Header = () => {
                     );
 
                     const filteredData = data.filter((item) => item.geojson?.type === 'Polygon');
-                    console.log('test',filteredData);
+                    console.log('test', filteredData);
 
                     setSearchResult(filteredData);
 
@@ -145,18 +143,19 @@ const Header = () => {
     }, [debouncedInputSearch]);
 
     const handleItemClick = (item) => {
-        item && dispatch(
-            doSearch({
-                displayName: item.display_name,
-                lat: item.lat,
-                lon: item.lon,
-                coordinates: item.geojson.coordinates,
-                boundingbox: item.boundingbox,
-            }),
-        );
+        item &&
+            dispatch(
+                doSearch({
+                    displayName: item.display_name,
+                    lat: item.lat,
+                    lon: item.lon,
+                    coordinates: item.geojson.coordinates,
+                    boundingbox: item.boundingbox,
+                }),
+            );
         setSearchQuery('');
         // window.history.pushState({}, '', `/${item.name}`);
-        navigate(`/${item.name}`)
+        // navigate(`/${item.name}`);
     };
 
     return (
@@ -181,14 +180,17 @@ const Header = () => {
                             <NavLink to="/" className="nav-link">
                                 <HomeIcon />
                             </NavLink>
+                            <NavLink to="/planMap" className="nav-link">
+                                <FaMap />
+                            </NavLink>
                             <NavLink to="/notifications" className="nav-link">
-                               <NotificationIcon />
+                                <NotificationIcon />
                             </NavLink>
                             <NavLink to="/news" className="nav-link">
-                               <NewsIcon />
+                                <NewsIcon />
                             </NavLink>
                             <NavLink to="/search" className="nav-link">
-                               <SearchNavbarIcon />
+                                <SearchNavbarIcon />
                             </NavLink>
                             <NavLink to="/auctions" className="nav-link">
                                 <ActionIcon />
@@ -225,27 +227,25 @@ const Header = () => {
                                 <div className="header-notification">
                                     <IoIosNotifications size={24} />
                                 </div>
-                                {
-                                    !isAuthenticated ? (
-                                        <button className="btn" onClick={() => setIsShowModalLogin(true)}>
-                                            Đăng nhập
-                                        </button>
-                                    ) : (
-                                        <Dropdown menu={{ items }} trigger={['click']}>
-                                            <a
-                                                style={{ color: '#fff', cursor: 'pointer' }}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                }}
-                                            >
-                                                <Space>
-                                                    <Avatar src={apiUser?.avatarLink} />
-                                                    {apiUser?.FullName}
-                                                </Space>
-                                            </a>
-                                        </Dropdown>
-                                    )
-                                }
+                                {!isAuthenticated ? (
+                                    <button className="btn" onClick={() => setIsShowModalLogin(true)}>
+                                        Đăng nhập
+                                    </button>
+                                ) : (
+                                    <Dropdown menu={{ items }} trigger={['click']}>
+                                        <a
+                                            style={{ color: '#fff', cursor: 'pointer' }}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                            }}
+                                        >
+                                            <Space>
+                                                <Avatar src={apiUser?.avatarLink} />
+                                                {apiUser?.FullName}
+                                            </Space>
+                                        </a>
+                                    </Dropdown>
+                                )}
                             </div>
                         </div>
                     </Navbar.Collapse>

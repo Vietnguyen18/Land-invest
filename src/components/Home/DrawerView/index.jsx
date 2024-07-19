@@ -1,21 +1,33 @@
 import { Carousel, Drawer, Image } from 'antd';
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import './DrawerView.scss';
+import { calculateDate } from '../../../function/calculateDate';
+import { formatToVND } from '../../../function/formatToVND';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import Slider from 'react-slick';
 
-const DrawerView = ({ isDrawerVisible, closeDrawer, images, description, priceOnM2 }) => {
+const DrawerView = ({ isDrawerVisible, closeDrawer, images, description, priceOnM2, addAt }) => {
+    const settings = {
+        dots: images.length > 1,
+        infinite: images.length > 1,
+        speed: 500,
+        slidesToShow: images.length > 4 ? 3 : images.length === 1 ? 1 : 2,
+        slidesToScroll: images.length > 4 ? 3 : images.length === 1 ? 1 : 2,
+    };
+
     return (
-        <Drawer title={description} placement="left" closable={false} onClose={closeDrawer} open={isDrawerVisible}>
+        <Drawer placement="bottom" closable={false} onClose={closeDrawer} open={isDrawerVisible}>
             <div className="drawer--content__container">
-                <div className="">
+                <div className="drawer--content__detail">
                     <h3>{description}</h3>
-                    <span>Giá/m²: {priceOnM2}</span>
+                    <p>Loại tài sản: Đất bán</p>
+                    <p>Giá/m²: {formatToVND(priceOnM2)}</p>
+                    <p>Ngày đăng: {calculateDate(addAt)}</p>
+                    <p>Diện tích: 1000m2</p>
                 </div>
                 <div className="drawer__image">
-                    <Image.PreviewGroup
-                        preview={{
-                            onChange: (current, prev) => console.log(`current index: ${current}, prev index: ${prev}`),
-                        }}
-                    >
+                    <Slider {...settings}>
                         {images.map((image) => (
                             <Image
                                 key={image.id}
@@ -24,7 +36,7 @@ const DrawerView = ({ isDrawerVisible, closeDrawer, images, description, priceOn
                                 className="drawer--content__image"
                             />
                         ))}
-                    </Image.PreviewGroup>
+                    </Slider>
                 </div>
             </div>
         </Drawer>

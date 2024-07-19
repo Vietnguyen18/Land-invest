@@ -23,6 +23,7 @@ import Profile from './pages/ProfileUser/Profile';
 import { useSelector } from 'react-redux';
 import Notification from './components/Notification/Notification';
 import AuctionInfor from './components/Auction/AuctionInfor';
+import PlanMap from './pages/PlanMap';
 
 const Layout = () => {
     return (
@@ -53,6 +54,10 @@ function App() {
                 {
                     path: '/:name',
                     element: <Home />,
+                },
+                {
+                    path: '/PlanMap',
+                    element: <PlanMap />,
                 },
                 {
                     path: '/notifications',

@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import './ModalUploadImage.scss';
-import { Button, Modal, notification, Select } from 'antd';
+import { Button, Image, Input, Modal, notification, Select } from 'antd';
 import { DollarIcon, FileUploadIcon } from '../../Icons';
 import { FiPlus } from 'react-icons/fi';
 import { useDropzone } from 'react-dropzone';
@@ -8,35 +8,65 @@ import { useSelector } from 'react-redux';
 import axios from 'axios'; // Import Axios
 import fetchDistrictName, { getDistrict, getProvince } from '../../../function/findProvince';
 import fetchProvinceName from '../../../function/findProvince';
+import { findClosestDistrict } from '../../../function/findClosestDistrict';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import Slider from 'react-slick';
+import { filterByHouse } from '../../../constants/filter';
+import Checkbox from '../../Checkbox';
+import { MdOutlineLandslide } from 'react-icons/md';
 
 const ModalUploadImage = ({
     showNotification,
     isModalUpLoadVisible,
     handleCloseModal,
     selectedPosition,
-    provinceName,
+    locationInfo,
     handleSelectedDistrict,
 }) => {
     const datauser = useSelector((state) => state.account.dataUser);
     const [images, setImages] = useState([]);
     const [description, setDescription] = useState('');
     const [priceOnM2, setPriceOnM2] = useState('');
-    const [listDistrict, setListDistrict] = useState([]);
-    const [selectedDistrictId, setSelectedDistrictId] = useState(null);
+    const [dienTich, setDienTich] = useState('');    const [selectedDistrict, setSelectedDistrict] = useState(null);
+    const [error, setError] = useState('');
+    const [checkedItem, setCheckedItem] = useState(null);
 
-    console.log("selectedDistrictId", selectedDistrictId);
+    const settings = {
+        dots: images.length > 1,
+        infinite: images.length > 1,
+        speed: 500,
+        slidesToShow: images.length > 4 ? 3 : images.length === 1 ? 1 : 2,
+        slidesToScroll: images.length > 4 ? 3 : images.length === 1 ? 1 : 2,
+    };
+
+    const handleCheckboxChange = (title) => {
+        setCheckedItem(prev => prev === title ? null : title);
+    };
 
     useEffect(() => {
         const getIdDistrict = async () => {
-            if (provinceName) {
-                const province = await getProvince(provinceName);
-                const data = await getDistrict(province.TinhThanhPhoID);
-                setListDistrict(data);
+            if (locationInfo) {
+                const res = await getProvince(locationInfo.provinceName);
+                const data = await findClosestDistrict(res.TinhThanhPhoID, locationInfo.districtName);
+
+                data.found
+                    ? setSelectedDistrict({
+                          districtId: data.districtId,
+                          districtName: data.districtName,
+                      })
+                    : console.error(data.error);
             }
         };
 
         getIdDistrict();
-    }, [provinceName]);
+    }, [locationInfo]);
+
+    useEffect(() => {
+        if (selectedPosition) {
+            setImages([]);
+        }
+    }, [selectedPosition]);
 
     const handleUpload = async () => {
         if (
@@ -45,8 +75,10 @@ const ModalUploadImage = ({
             images.length === 0 ||
             !description ||
             !priceOnM2 ||
+            !dienTich ||
             !selectedPosition ||
-            !selectedDistrictId
+            !selectedDistrict.districtId ||
+            !checkedItem
         ) {
             console.error('Missing required fields');
             showNotification('error', 'Error', 'Missing required fields');
@@ -62,7 +94,7 @@ const ModalUploadImage = ({
             longitude: selectedPosition.lng,
             latitude: selectedPosition.lat,
             priceOnM2,
-            idDistrict: selectedDistrictId,
+            idDistrict: selectedDistrict.districtId,
         };
 
         try {
@@ -80,31 +112,18 @@ const ModalUploadImage = ({
             showNotification('error', 'Error', 'Error uploading data');
         }
     };
+    const imageLink = images.join(',');
 
-    const onDrop = useCallback(
-        async (acceptedFiles) => {
-            const toBase64 = (file) =>
-                new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = (error) => reject(error);
-                });
+    console.log(imageLink);
 
-            try {
-                const base64Images = await Promise.all(acceptedFiles.map((file) => toBase64(file)));
-                setImages(base64Images);
-            } catch (error) {
-                console.error('Error converting files to base64:', error);
-                showNotification('error', 'Error', 'Error converting files to base64');
-            }
-        },
-        [showNotification],
-    );
+    const handleImageLinkEnter = async (event) => {
+        if (event.key === 'Enter') {
+            const url = event.target.value;
 
-    console.log(images);
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: 'image/*', multiple: true });
-
+            setImages((prevImages) => [...prevImages, url]);
+            event.target.value = '';
+        }
+    };
     return (
         <Modal
             key={1212}
@@ -122,20 +141,48 @@ const ModalUploadImage = ({
             ]}
         >
             <div className="modal--upload__content">
-                <div {...getRootProps()} className="upload--container">
-                    <input {...getInputProps()} />
-                    {isDragActive ? <p>Thả ảnh ở đây</p> : <p>Thêm hình ảnh vào đây</p>}
-                    {images.length > 0 && <p>Bạn đã chọn ${images.length} ảnh</p>}
-                </div>
                 <div className="content--container">
-                    <a href="https://www.youtube.com/" target="_blank" className="content__link" rel="noreferrer">
+                    {/* <a href="https://www.youtube.com/" target="_blank" className="content__link" rel="noreferrer">
                         <div className="content__link--box"></div>
                         <span>Video hướng dẫn Youtube</span>
-                    </a>
+                    </a> */}
+                    <div className="content--input__image">
+                        <Input
+                            status={error}
+                            type="text"
+                            placeholder="Your image link"
+                            onKeyDown={handleImageLinkEnter}
+                        />
+
+                        {images.length > 0 && (
+                            <div className="content__images">
+                                <Slider {...settings}>
+                                    {images.map((image, index) => (
+                                        <Image key={index} src={image} alt={`Image`} className="content__image" />
+                                    ))}
+                                </Slider>
+                            </div>
+                        )}
+                    </div>
                     <div className="content__price">
+                        <label htmlFor="price">Giá/m²</label>
+                        <input
+                            id="price"
+                            type="number"
+                            value={priceOnM2}
+                            onChange={(e) => setPriceOnM2(e.target.value)}
+                        />
                         <DollarIcon />
-                        <input type="number" value={priceOnM2} onChange={(e) => setPriceOnM2(e.target.value)} />
-                        <span>Giá/m²</span>
+                    </div>
+                    <div className="content__price">
+                        <label htmlFor="dienTich">Diện tích</label>
+                        <input
+                            id="dienTich"
+                            type="number"
+                            value={dienTich}
+                            onChange={(e) => setDienTich(e.target.value)}
+                        />
+                        <MdOutlineLandslide size={22} />
                     </div>
                     <div className="content__location">
                         <label htmlFor="">Vĩ độ:</label>
@@ -145,7 +192,23 @@ const ModalUploadImage = ({
                         <label htmlFor="">Kinh độ:</label>
                         <span>{selectedPosition?.lng || ''}</span>
                     </div>
-                    <Select
+                    <div className="filterByHouse">
+                        {filterByHouse.map((item) => (
+                            <Checkbox
+                                key={item.id}
+                                title={item.title}
+                                id={item.id}
+                                color
+                                checked={checkedItem === item.title}
+                                onChange={() => handleCheckboxChange(item.title)}
+                            />
+                        ))}
+                    </div>
+                    <div className="content__location">
+                        <label htmlFor="">Huyện:</label>
+                        <span>{selectedDistrict?.districtName || ''}</span>
+                    </div>
+                    {/* <Select
                         showSearch
                         placeholder="Chọn quận/huyện"
                         optionFilterProp="children"
@@ -165,7 +228,7 @@ const ModalUploadImage = ({
                                     {district.DistrictName}
                                 </Select.Option>
                             ))}
-                    </Select>
+                    </Select> */}
                     <div className="content__description">
                         <label htmlFor="">Mô tả:</label>
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} />

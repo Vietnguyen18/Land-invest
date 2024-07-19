@@ -14,25 +14,6 @@
     overflow: auto;
 }
 
-input[type='number'] {
-    background-color: transparent;
-    border: none;
-    color: inherit;
-    flex: 1;
-    -moz-appearance: textfield;
-}
-
-input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-input[type='number']:focus-visible {
-    outline: none;
-    box-shadow: none;
-}
-
 textarea {
     background-color: transparent;
     border: none;
@@ -48,3 +29,16 @@ textarea {
 textarea:focus-visible {
     box-shadow: none;
 }
+
+button {
+    all: unset; 
+    display: inline-block; 
+    padding: 0; 
+    border: none; 
+    background: none; 
+    font: inherit;
+    color: inherit; 
+    cursor: pointer; 
+    outline: none;
+  }
+  
