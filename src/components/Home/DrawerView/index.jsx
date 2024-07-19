@@ -3,17 +3,19 @@ import React, { memo, useState } from 'react';
 import './DrawerView.scss';
 import { calculateDate } from '../../../function/calculateDate';
 import { formatToVND } from '../../../function/formatToVND';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import Slider from 'react-slick';
 
 const DrawerView = ({ isDrawerVisible, closeDrawer, images, description, priceOnM2, addAt }) => {
-    const [currentSlide, setCurrentSlide] = useState(0);
-
-    const nextSlide = () => {
-        setCurrentSlide((prev) => (prev + 1) % images.length);
+    const settings = {
+        dots: images.length > 1,
+        infinite: images.length > 1,
+        speed: 500,
+        slidesToShow: images.length > 4 ? 3 : images.length === 1 ? 1 : 2,
+        slidesToScroll: images.length > 4 ? 3 : images.length === 1 ? 1 : 2,
     };
 
-    const prevSlide = () => {
-        setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
-    };
     return (
         <Drawer placement="bottom" closable={false} onClose={closeDrawer} open={isDrawerVisible}>
             <div className="drawer--content__container">
@@ -25,24 +27,16 @@ const DrawerView = ({ isDrawerVisible, closeDrawer, images, description, priceOn
                     <p>Diện tích: 1000m2</p>
                 </div>
                 <div className="drawer__image">
-                    <div className="slider" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+                    <Slider {...settings}>
                         {images.map((image) => (
-                            <div key={image.id} className="slide">
-                                <Image
-                                    src={`data:image/png;base64,${image.imageLink}`}
-                                    alt={`Image ${image.id}`}
-                                    className="drawer--content__image"
-                                    preview={false}
-                                />
-                            </div>
+                            <Image
+                                key={image.id}
+                                src={`data:image/png;base64,${image.imageLink}`}
+                                alt={`Image ${image.id}`}
+                                className="drawer--content__image"
+                            />
                         ))}
-                    </div>
-                    <button className="nav-button prev" onClick={prevSlide}>
-                        &#10094;
-                    </button>
-                    <button className="nav-button next" onClick={nextSlide}>
-                        &#10095;
-                    </button>
+                    </Slider>
                 </div>
             </div>
         </Drawer>

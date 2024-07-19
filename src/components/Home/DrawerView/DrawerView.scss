@@ -1,14 +1,9 @@
 .drawer--content__container {
     width: 100%;
     height: 100%;
-    background-image: url('../../../assets/backgroundImage.png');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-    z-index: 9999;
 
     .drawer--content__detail {
-        padding: 44px 44px 0 44px;
+        padding: 16px;
 
         & p {
             margin: 0;
@@ -19,80 +14,28 @@
     }
 
     .drawer__image {
-        display: flex;
-        justify-content: center;
-        overflow: hidden;
-        width: 100%;
-        position: relative;
+        // height: 450px;
 
-        .slider {
-            display: flex;
-            width: 100%;
-            transition: transform 0.3s ease-in-out;
-        }
-        
-        .slide {
-            width: 100%;
-            height: 400px;
-            flex-shrink: 0;
-            flex-grow: 0;
-        }
-        
         .drawer--content__image {
-            width: 100%;
-            height: 260px;
-            // max-height: calc(100vh - 200px);
-            object-fit: contain;
-            display: block;
+            height: 350px;
+            object-fit: cover;
             transition: all 0.3 ease-in-out;
-            flex-shrink: 0;
-            flex-grow: 0;
+            
         }
 
-        .button--left {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            color: #fff;
-            font-size: 1.5rem;
-            line-height: 2rem;
-            font-weight: 700;
-            background-color: #e5e7eb;
-            padding: 8px;
-            border-radius: 9999px;
-            cursor: pointer;
-            transition: scale 0.3s linear;
-
-            &:hover {
-                scale: 1.1;
-            }
+        & .ant-image {
+            width: 100%;
+            // margin: 0 10px;
         }
-        .button--right {
-            position: absolute;
-            top: 50%;
-            right: 0;
-            transform: translateY(-50%);
-            color: #fff;
-            font-size: 1.5rem;
-            line-height: 2rem;
-            font-weight: 700;
-            background-color: #e5e7eb;
-            padding: 8px;
-            border-radius: 9999px;
-            cursor: pointer;
-            transition: scale 0.3s linear;
 
-            &:hover {
-                scale: 1.1;
-            }
+        & .slick-slide > div {
+            margin: 0 10px;
+            border-radius: 12px;
+            overflow: hidden;
         }
     }
 }
 
-.ant-drawer-body {
-    padding: 0 !important;
-}
 
 .ant-drawer-content {
     .ant-drawer-header {
@@ -102,6 +45,13 @@
     .ant-drawer-title {
         color: #fff;
     }
+    .ant-drawer-body {
+        background-image: url('../../../assets/backgroundImage.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        padding: -1 !important;
+    }
 }
 
 .ant-drawer-content-wrapper {
@@ -110,26 +60,6 @@
 
 @media (max-width: 768px) {
     .ant-drawer-content-wrapper {
-        width: 40% !important;
+        height: 40% !important;
     }
-}
-
-
-.nav-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-}
-
-.prev {
-    left: 10px;
-}
-
-.next {
-    right: 10px;
 }
