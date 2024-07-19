@@ -46,7 +46,7 @@ export const accountSlice = createSlice({
         Email: "",
         LastLoginIP: ""
       };
-      state.dataUser = {}; // Reset to empty object instead of null
+      state.dataUser = {}; // Đặt lại về đối tượng trống thay vì nul
     },
 
     doLoginDataUser: (state, action) => {
