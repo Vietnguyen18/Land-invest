@@ -24,8 +24,11 @@ const Login = () => {
     if(res) {
       console.log("res", res);
       localStorage.setItem('access_token', res.data.access_token);
-      localStorage.setItem('refresh_token', res.data.refreshtoken);
+      localStorage.setItem('refresh_token', res.data.access_token);
+      localStorage.setItem('user_id', res.data.UserID );
       document.cookie = `access_token_cookie=${res.data.access_token}; path=/`;
+
+      console.log('res.data.refreshtoken',res.data.access_token);
       
       dispatch(doLoginAction(JSON.parse(res.config.data)));
       dispatch(doLoginDataUser(res.data));
