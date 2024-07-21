@@ -44,15 +44,10 @@ const Header = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await fetchAccount();
-                const fetchedUser = response.find((user) => user.userid === datauser.UserID);
-                if (fetchedUser) {
-                    setApiUser(fetchedUser);
-                } else {
-                    notification.error({
-                        message: 'Error',
-                        description: 'User not found',
-                    });
+                if (datauser?.UserID) {
+                    const response = await fetchAccount();
+                    const fetchedUser = response.find((user) => user?.userid === datauser?.UserID);
+                    fetchedUser && setApiUser(fetchedUser);
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -64,7 +59,7 @@ const Header = () => {
         };
 
         fetchUserData();
-    }, [datauser.UserID]);
+    }, [datauser?.UserID]);
 
     let items = [
         {
