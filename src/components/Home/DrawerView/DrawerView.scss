@@ -5,12 +5,16 @@
     .drawer--content__detail {
         padding: 16px;
 
+        
         & p {
             margin: 0;
             font-weight: 400;
             font-size: 20px;
             line-height: 26px;
+            margin-top: 0.8rem;
         }
+
+        
     }
 
     .drawer__image {

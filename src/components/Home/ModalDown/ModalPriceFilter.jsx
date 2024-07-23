@@ -1,7 +1,7 @@
 import './ModalDownMenu.scss';
 import { IoIosCheckboxOutline } from 'react-icons/io';
 import { MdCheckBoxOutlineBlank } from 'react-icons/md';
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { Modal } from 'antd';
 import Draggable from 'react-draggable';
 import {
@@ -13,6 +13,8 @@ import {
 } from '../../../constants/filter';
 import { CheckSquareIcon } from '../../Icons';
 import Checkbox from '../../Checkbox';
+import { useDispatch, useSelector } from 'react-redux';
+import { setFilter } from '../../../redux/filter/filterSlice';
 
 const ModalPriceFilter = (props) => {
     const { handleClosePrice, showPrice } = props;
@@ -25,22 +27,14 @@ const ModalPriceFilter = (props) => {
     });
     const draggleRef = useRef(null);
 
-    const [selectedFilters, setSelectedFilters] = useState({
-        house: [],
-        priceOnM2: [],
-        date: [],
-        landArea: [],
-        priceRange: [],
-    });
+    const dispatch = useDispatch();
+    const selectedFilters = useSelector(state => state.filter);
 
     const handleCheckboxChange = (category, id) => {
-        setSelectedFilters((prevState) => {
-            const updatedCategory = prevState[category].includes(id) ? [] : [id];
-            return { ...prevState, [category]: updatedCategory };
-        });
+        dispatch(setFilter({ category, id }));
     };
 
-    console.log(selectedFilters);
+    console.log("selectedFilters", selectedFilters);
 
     const onStart = (_event, uiData) => {
         const { clientWidth, clientHeight } = window.document.documentElement;
@@ -60,7 +54,6 @@ const ModalPriceFilter = (props) => {
         <Modal
             key={1212}
             open={showPrice}
-            // onOk={handleOk}
             onCancel={handleClosePrice}
             footer={null}
             mask={false}
@@ -117,7 +110,7 @@ const ModalPriceFilter = (props) => {
 
                 <div className="border_bottom-modal"></div>
 
-                <div className="filterByPriceOnM2">
+                {/* <div className="filterByPriceOnM2">
                     {filterByPriceOnM2.map((item) => (
                         <Checkbox
                             key={item.id}
@@ -127,8 +120,8 @@ const ModalPriceFilter = (props) => {
                             onChange={() => handleCheckboxChange('priceOnM2', item.id)}
                         />
                     ))}
-                </div>
-                <div className="border_bottom-modal"></div>
+                </div> */}
+                {/* <div className="border_bottom-modal"></div> */}
 
                 <div className="filterByDate">
                     {filterByDate.map((item) => (
@@ -173,4 +166,4 @@ const ModalPriceFilter = (props) => {
     );
 };
 
-export default ModalPriceFilter;
+export default memo(ModalPriceFilter);

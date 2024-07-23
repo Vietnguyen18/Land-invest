@@ -9,16 +9,7 @@ export const filterByHouse = [
     },
 ];
 
-export const filterByPriceOnM2 = [
-    {
-        id: 1,
-        title: 'Giá/m² + giá/mn',
-    },
-    {
-        id: 2,
-        title: 'Diện tích + giá bán',
-    },
-];
+
 export const filterByDate = [
     {
         id: 1,

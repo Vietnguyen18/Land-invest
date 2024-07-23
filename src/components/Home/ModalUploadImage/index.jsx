@@ -1,9 +1,8 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import './ModalUploadImage.scss';
-import { Button, Image, Input, Modal, notification, Select } from 'antd';
+import { Button, Image, Input, Modal, notification, Select, Space } from 'antd';
 import { DollarIcon, FileUploadIcon } from '../../Icons';
 import { FiPlus } from 'react-icons/fi';
-import { useDropzone } from 'react-dropzone';
 import { useSelector } from 'react-redux';
 import axios from 'axios'; // Import Axios
 import fetchDistrictName, { getDistrict, getProvince } from '../../../function/findProvince';
@@ -28,9 +27,11 @@ const ModalUploadImage = ({
     const [images, setImages] = useState([]);
     const [description, setDescription] = useState('');
     const [priceOnM2, setPriceOnM2] = useState('');
-    const [dienTich, setDienTich] = useState('');    const [selectedDistrict, setSelectedDistrict] = useState(null);
-    const [error, setError] = useState('');
+    const [dienTich, setDienTich] = useState();
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
+    const [error, setError] = useState(false);
     const [checkedItem, setCheckedItem] = useState(null);
+    const [inputValue, setInputValue] = useState('');
 
     const settings = {
         dots: images.length > 1,
@@ -41,7 +42,7 @@ const ModalUploadImage = ({
     };
 
     const handleCheckboxChange = (title) => {
-        setCheckedItem(prev => prev === title ? null : title);
+        setCheckedItem((prev) => (prev === title ? null : title));
     };
 
     useEffect(() => {
@@ -50,8 +51,7 @@ const ModalUploadImage = ({
                 const res = await getProvince(locationInfo.provinceName);
                 const data = await findClosestDistrict(res.TinhThanhPhoID, locationInfo.districtName);
 
-                data.found
-                    ? setSelectedDistrict({
+                data.found ? setSelectedDistrict({
                           districtId: data.districtId,
                           districtName: data.districtName,
                       })
@@ -85,17 +85,19 @@ const ModalUploadImage = ({
             return;
         }
 
-        const imageLink = images.join(',');
-
         const payload = {
             idUser: datauser.UserID,
-            imageLink,
+            imageLink: JSON.stringify(images),
             description,
             longitude: selectedPosition.lng,
             latitude: selectedPosition.lat,
             priceOnM2,
             idDistrict: selectedDistrict.districtId,
+            area: dienTich,
+            typeArea: checkedItem,
         };
+
+        console.log(payload);
 
         try {
             const response = await axios.post('https://apilandinvest.gachmen.org/api/location/add_info', payload, {
@@ -107,23 +109,44 @@ const ModalUploadImage = ({
             console.log('Response:', response.data);
             console.log('Data uploaded successfully');
             showNotification('success', 'Success', 'Data uploaded successfully, please reload to see changes');
+            handleCloseModal();
         } catch (error) {
             console.error('Error uploading data:', error);
             showNotification('error', 'Error', 'Error uploading data');
         }
     };
-    const imageLink = images.join(',');
 
-    console.log(imageLink);
+    const handleSubmit = async () => {
+        if (inputValue === '') {
+            setError(false);
+            return;
+        }
 
-    const handleImageLinkEnter = async (event) => {
-        if (event.key === 'Enter') {
-            const url = event.target.value;
+        try {
+            const response = await fetch(inputValue);
+            if (!response.ok) {
+                throw new Error('Invalid image URL');
+            }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.startsWith('image/')) {
+                throw new Error('URL does not point to an image');
+            }
+            
 
-            setImages((prevImages) => [...prevImages, url]);
-            event.target.value = '';
+            setImages((prevImages) => [...prevImages, inputValue]);
+            setError(false);
+            setInputValue('');
+        } catch (error) {
+            setError(true);
+            console.error('Error validating image URL:', error);
         }
     };
+    const handleImageLinkEnter = (event) => {
+        if (event.key === 'Enter') {
+            handleSubmit();
+        }
+    };
+
     return (
         <Modal
             key={1212}
@@ -147,12 +170,20 @@ const ModalUploadImage = ({
                         <span>Video hướng dẫn Youtube</span>
                     </a> */}
                     <div className="content--input__image">
-                        <Input
-                            status={error}
-                            type="text"
-                            placeholder="Your image link"
-                            onKeyDown={handleImageLinkEnter}
-                        />
+                        <Space.Compact style={{ width: '100%' }}>
+                            <Input
+                                status={error ? 'error' : ''}
+                                type="text"
+                                placeholder="Link ảnh bạn muốn thêm"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={handleImageLinkEnter}
+                                
+                            />
+                            <button className="button-image" onClick={handleSubmit}>
+                                Tải lên
+                            </button>
+                        </Space.Compact>
 
                         {images.length > 0 && (
                             <div className="content__images">
