@@ -9,17 +9,17 @@ export const callLogin = (Username, Password) => {
 }
 
 
-export const callRegister = (registerUsername, registerFullName, registerPassword, registerGender, registerLatitude, registerLongitude, registeravatarLink, registerEmail, registerLastLoginIP) => {
+export const callRegister = (Username, Fullname, Password, Gender, Latitude, Longitude, AvatarLink,ipAddress, Email) => {
     const payload = {
-        Username:registerUsername,
-        FullName:registerFullName,
-        Password:registerPassword,
-        Gender:registerGender,
-        Latitude:registerLatitude,
-        Longitude:registerLongitude,
-        avatarLink: registeravatarLink,
-        Email:registerEmail,
-        LastLoginIP:registerLastLoginIP
+        Username:Username,
+        FullName:Fullname,
+        Password:Password,
+        Gender:Gender,
+        Latitude:Latitude,
+        Longitude:Longitude,
+        avatarLink: AvatarLink,
+        Email:Email,
+        LastLoginIP:ipAddress
     };
 
     console.log('Payload:', payload);
@@ -202,8 +202,17 @@ export const DeleteComment = (CommentID) => {
 }
 
 
-export const CreatePost = ( GroupID, Title, Content, PostLatitude , PostLongitude) => {
-    return instance.post('/api/forum/add_post',{GroupID, Title, Content, PostLatitude , PostLongitude});
+export const CreatePost = ( GroupID, Title, Content, PostLatitude , PostLongitude,base64Images) => {
+    const params = {
+        GroupID: GroupID,
+        Title: Title,
+        Content: Content,
+        PostLatitude: PostLatitude,
+        PostLongitude: PostLongitude,
+        Images: base64Images
+    }
+    console.log('params', params);
+    return instance.post('/api/forum/add_post',params);
 }
 export const UpdatePost = (PostID, Title, Content) => {
     return instance.patch(`/api/forum/update_post/${PostID}`,{Title, Content});

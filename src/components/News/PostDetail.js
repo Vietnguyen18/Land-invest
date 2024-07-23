@@ -30,7 +30,6 @@ const [inputContent, setInputContent] = useState('')
 const [inputImage, setInputImage] = useState(null)
 const [listViewComment, setListViewComment] = useState([])
 const [dataUpdate, setDataUpdate] = useState([]);
-
 const location = useLocation();
 const [postId, setPostId] = useState(null);
 const [openModalUpdate, setOpenModalUpdate] = useState(false);

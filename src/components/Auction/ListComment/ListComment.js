@@ -12,7 +12,6 @@ const ListComment = ({IDAuction}) => {
     const [EditComment, setEditComment] = useState('') // edit comment
     const [openModal, setOpenModal] = useState(null)
     const dataUserID = useSelector((state) => state.account.dataUser.UserID);
-
     // call api list comment
     useEffect(() => {
       const fetchDataList = async () =>{

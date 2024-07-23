@@ -38,6 +38,100 @@
                 min-height: 46px; /* Chiều cao tối thiểu */
                 height: auto; /* Chiều cao tự động */
             }
+            .post-new-content {
+                width: 100%;
+                min-height: 50px;
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 16px;
+              }
+            .post-image{
+                cursor: pointer;
+                padding: 8px ;
+                margin: auto 0px 10px;
+                min-height: 100px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                position: relative;
+                .icon-close{
+                    position: absolute;
+                    font-size: 30px;
+                    color: #6e6c6c;
+                    right: 0px;
+                    top: -6px;
+                    padding: 5px;
+                }
+                .add-image-post{
+                    background-color: #d0d0d045;
+                    border-radius: 5px;
+                    width: 100%;
+                    .images-content{
+                        margin: 5px;
+                        text-align: center;
+                        img{
+                            margin: 5px;
+                            background-color: rgba(241, 238, 238, 0.521);
+                            padding: 8px;
+                            border-radius: 30px;
+                            width: 50px;
+                        }
+                        p{
+                            font-weight: 700;
+                            margin: 5px 0;
+                            font-size: 18px;
+                        }
+                        label{
+                            font-size: 14px;
+                            font-style: italic;
+                            margin-bottom: 10px;
+                        }
+                    }
+                }
+                .add-image-post:hover{
+                    background-color: #d0d0d0;
+                    cursor: pointer;
+                }
+            }
+            .preview-files{
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+                margin-top: 10px;
+                .preview-file {
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+              
+                    .preview-image,
+                    .preview-video {
+                      max-width: 200px;
+                      max-height: 150px;
+                      object-fit: cover;
+                      border-radius: 10px;
+                      padding: 5px;
+                    }
+                    .remove-icon{
+                        position: absolute;
+                        top: -10px;
+                        right: -10px;
+                        background: rgba(255, 255, 255, 0.7);
+                        border-radius: 50%;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        svg{
+                            color: rgb(0, 0, 0);
+                            font-size: 18px;
+                            margin: 5px;
+                        }
+                        svg:hover{
+                            color: #ff0000;
+                        }
+                    }
+                }
+            }
         
             .post-action {
                 display: flex;
@@ -45,7 +139,7 @@
                 border-radius: 5px; 
                 justify-content:space-between;
                 padding: 20px;
-                margin-top: 56px;
+                margin-top: 35px;
 
                 span {
                     display: flex;
@@ -53,12 +147,23 @@
                 }
                 .post-action-img {
                     display: flex;
-                    gap: 20px;
+                    gap: 15px;
                     align-items: center;
-                    .more-icon {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
+                    cursor: pointer;
+                    .icon-post-forums{
+                        padding: 10px;
+                        border-radius: 30px;
+                        .more-icon {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                        }
+                    }
+                    .icon-post-forums:hover{
+                        background-color: rgba($color: #a4a4a4, $alpha: 0.1);
+                    }
+                    .icon-post-forums:active{
+                        background-color: rgba($color: #a4a4a4, $alpha: 0.3);
                     }
                 }
             }

@@ -13,14 +13,14 @@ import { useSelector } from "react-redux";
 const News = (props) => {
     const navigate = useNavigate();
     const [listViewBox, setListViewBox] = useState([])
-    console.log('listViewBox',listViewBox);
+    // console.log('listViewBox',listViewBox);
     const [listCheckOnline, setListCheckOnline] = useState({})
     const [listViewPost, setListViewPost] = useState([])
     const [inputValue, setInputValue] = useState('');
     const [isShowModalLogin, setIsShowModalLogin] = useState(false);
     const textareaRef = useRef(null);
     const listUser = useSelector((state) => state.listbox.listuser);
-    console.log("res listUser",listUser)
+    // console.log("res listUser",listUser)
 
     useEffect(() => {
         adjustTextareaHeight();
@@ -81,15 +81,15 @@ const News = (props) => {
             }));
         }
     }
-    console.log("res CheckUserOnline",listCheckOnline)
+    // console.log("res CheckUserOnline",listCheckOnline)
     const getListViewPost = async() => {
         let res = await ViewlistPost()
         if(res && res?.data) {
             setListViewPost(res.data);
         }
-        console.log("res viewPost",res)
+        // console.log("res viewPost",res)
     }
-    console.log("listViewPost",listViewPost)
+    // console.log("listViewPost",listViewPost)
 
     const nonAccentVietnamese = (str) => {
         str = str.replace(/A|Á|À|Ã|Ạ|Â|Ấ|Ầ|Ẫ|Ậ|Ă|Ắ|Ằ|Ẵ|Ặ/g, "A");
@@ -319,7 +319,7 @@ const News = (props) => {
                         listViewPost.map((post, index)=>{
                             const user = listUser.find(user => user.userid === post.UserID);
                             //getCheckUserOnline(user.userid);
-                            console.log("test user:", user);
+                            // console.log("test user:", user);
                             const userOnlineStatus = listCheckOnline[user?.userid];
                            // Calculate the time difference and adjust to Vietnamese time
                             const postTime = moment(post.PostTime).tz("Asia/Ho_Chi_Minh");

@@ -16,7 +16,7 @@ const instance = axios.create({
 const handleRefreshToken = async (userId) => {
   try {
       const res = await instance.post(`/refresh_token/${userId}`);
-      console.log('res data refresh token',res);
+      // console.log('res data refresh token',res);
       if (res && res.data) {
           const access_token = res.data.access_token;
           localStorage.setItem('refresh_token', access_token);

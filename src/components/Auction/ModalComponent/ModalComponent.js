@@ -11,20 +11,15 @@ const ModalComponent = ({ CloseModal,IDAuction}) => {
   const [comment, setComment] = useState('');
   const [apiUser, setApiUser] = useState([]);
   console.log('apiUser',apiUser);
-  const dataUserID = useSelector((state) => state.account.dataUser.UserID);
+  const dataUserID = useSelector((state) => state.account.dataUser);
     useEffect(() => {
       const fetchUserData = async () => {
         try {
-          const response = await fetchAccount();
-          const fetchedUser = response.find(user => user.userid === dataUserID);
-          if (fetchedUser) {
-            setApiUser(fetchedUser);
-          } else {  
-            notification.error({
-              message: 'Error',
-              description: 'Please log in to your account'
-            });
-          }
+          if (dataUserID?.UserID) {
+            const response = await fetchAccount();
+            const fetchedUser = response.find((user) => user?.userid === dataUserID?.UserID);
+            fetchedUser && setApiUser(fetchedUser);
+        }
         } catch (error) {
           console.error('Error fetching user data:', error);
           notification.error({
