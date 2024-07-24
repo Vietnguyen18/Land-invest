@@ -4,6 +4,7 @@ import listBoxReducer from './listForum/lisForumSlice';
 import searchQueryReducer from './search/searchSlice';
 import filterReducer from './filter/filterSlice';
 import planMapReducer from './planMap/planMapSlice';
+import listMarkerReducer from './listMarker/listMarkerSllice';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import listGroupReducer from './getId/getIDSlice';
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
     searchQuery: searchQueryReducer,
     filter: filterReducer,
     map: planMapReducer,
+    listMarker: listMarkerReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

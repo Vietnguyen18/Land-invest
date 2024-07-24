@@ -19,6 +19,7 @@ import { doSearch } from '../../redux/search/searchSlice';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { ActionIcon, HomeIcon, NewsIcon, SearchIcon, SearchNavbarIcon, NotificationIcon } from '../Icons';
 import { FaMap } from 'react-icons/fa';
+import { handleRefreshToken } from '../../utils/axios-customize';
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org/search?';
 const params = {
@@ -38,7 +39,7 @@ const Header = () => {
     const [searchResult, setSearchResult] = useState([]);
     const [debouncedInputSearch] = useDebounce(searchQuery, 300);
     const [isLoading, setIsLoading] = useState(false);
-    const [apiUser, setApiUser] = useState([]); // user khi đăng nhập thành công
+    const [apiUser, setApiUser] = useState([]);
 
     //User
     useEffect(() => {
@@ -57,7 +58,6 @@ const Header = () => {
                 });
             }
         };
-
         fetchUserData();
     }, [datauser?.UserID]);
 
@@ -200,7 +200,7 @@ const Header = () => {
                                 autoFocus
                             />
                             {isLoading && <AiOutlineLoading3Quarters className="loading" />}
-                            <button type="submit">
+                            <button  type="submit">
                                 <SearchIcon />
                             </button>
                             {searchResult.length > 0 && (

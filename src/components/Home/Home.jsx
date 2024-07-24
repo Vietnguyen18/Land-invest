@@ -21,17 +21,15 @@ import {
     Polygon,
     LayersControl,
 } from 'react-leaflet';
-import { useDropzone } from 'react-dropzone';
 import 'rc-slider/assets/index.css';
 import 'leaflet/dist/leaflet.css';
-// import { calc } from 'antd/es/theme/internal';
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import { Drawer, message, notification } from 'antd';
+import {  message, notification } from 'antd';
 import ModalDownMenu from './ModalDown/ModalDownMenu';
 import ModalPriceFilter from './ModalDown/ModalPriceFilter';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import ResetCenterView from '../../function/resetCenterView';
 import { DollarIcon, FileUploadIcon, SaveIcon } from '../Icons';
 import ModalUploadImage from './ModalUploadImage';
@@ -41,7 +39,9 @@ import 'leaflet/dist/leaflet.css';
 import fetchProvinceName, { getProvince } from '../../function/findProvince';
 import { findClosestDistrict } from '../../function/findClosestDistrict';
 import { formatToVND } from '../../function/formatToVND';
-import { parseCoordination } from '../../function/parseCondination';
+import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
+import { selectFilteredMarkers } from '../../redux/filter/filterSelector';
+import { useLocation } from 'react-router-dom';
 const mapContainerStyle = {
     width: '100%',
     height: 'calc(100vh - 56px)',
@@ -63,7 +63,6 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 function Home() {
-    const [image, setImage] = useState([]);
     const [opacity, setOpacity] = useState(1);
     const [scale, setScale] = useState(1);
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -78,7 +77,6 @@ function Home() {
     // const [imageUrl, setImageUrl] = useState('');
     // const [location, setLocation] = useState([]);
     const [polygon, setPolygon] = useState(null);
-    const [listMarker, setListMarker] = useState([]);
     const [provinceName, setProvinceName] = useState('');
     const [idProvince, setIdProvince] = useState();
     const [selectedMarker, setSelectedMarker] = useState(null);
@@ -89,7 +87,10 @@ function Home() {
     const [location, setLocation] = useState([]);
     const [coodination, setCoodination] = useState([]);
     const { lat, lon, boundingbox, coordinates, displayName } = useSelector((state) => state.searchQuery.searchResult);
-    const mapData = useSelector((state) => state.map.data);
+    const imageRef = useRef(null)
+    const listMarker = useSelector(selectFilteredMarkers)
+    const dispatch = useDispatch()
+    const locationLink = useLocation();
 
     const { BaseLayer } = LayersControl;
     const handleSliderChange = (event) => {
@@ -240,47 +241,10 @@ function Home() {
         });
     };
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-
-    //             const { data } = await axios.post(
-    //                 'https://apilandinvest.gachmen.org/api/districts/search/',
-    //                 { district: 'mai châu' },
-    //                 {
-    //                     headers: {
-    //                         'Content-Type': 'application/json',
-    //                     },
-    //                 },
-    //             );
-
-    //             // console.log(JSON.parse(data[0]?.location));
-    //             const imageUrl = data[0]?.imageHttp;
-    //             const location = (JSON.parse(data[0]?.location));
-    //             const coordinates = data[0].coordation;
-    //             setImageUrl(imageUrl);
-    //             setLocation(location);
-    //             // setCoordinates(coordinates);
-    //         } catch (error) {
-    //             console.error('Error fetching the data:', error);
-    //         }
-    //     };
-
-    //     fetchData();
-    // }, []);
-
+    
     useEffect(() => {
-        if (mapData) {
-            setImageUrl(mapData?.imageHttp);
-            setLocation(JSON.parse(mapData?.location));
-        }
-    }, [mapData]);
-
-    useEffect(() => {
-        if (mapData) {
-            setCoodination(JSON.parse(mapData?.coordation));
-        } else setCoodination(coordinates);
-    }, [coordinates, mapData, mapData?.coordation]);
+        setCoodination(coordinates);
+    }, [coordinates]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -288,15 +252,37 @@ function Home() {
                 const { data } = await axios.get(
                     `https://apilandinvest.gachmen.org/api/location/list_info_by_district/${idProvince}`,
                 );
-                setListMarker(data.data);
-                console.log('listMarker', data.data);
+                // setListMarker(data.data);
+                data.data ? dispatch(setListMarker(data.data)) : dispatch(setListMarker([]));
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
 
         fetchData();
-    }, [idProvince]);
+    }, [dispatch, idProvince]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const searchParams = new URLSearchParams(locationLink.search);
+                const quyhoach = searchParams.get('quyhoach');
+                console.log(quyhoach);
+                if (quyhoach) {
+                    const { data } = await axios.get(`https://apilandinvest.gachmen.org/api/districts/detail/${quyhoach}`);
+                    setImageUrl(data[0].imageHttp);
+                    setLocation(JSON.parse(data[0].location));
+                    setCoodination(JSON.parse(data[0].coordation));
+                } 
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        fetchData();
+    
+    }, [locationLink.search])
+    
 
     useEffect(() => {
         if (coodination && coodination.length > 0 && Array.isArray(coodination[0])) {
@@ -309,15 +295,7 @@ function Home() {
 
     return (
         <div className="home-container">
-            {/* <div {...getRootProps()} className="drop--container">
-                <input {...getInputProps()} />
-                {isDragActive ? (
-                    <p>Drop the files here ...</p>
-                ) : (
-                    <p>Drag and drop some files here, or click to select files</p>
-                )}
-            </div> */}
-            {/* Slider Container */}
+       
             <div
                 className="slider-container"
                 style={{
@@ -462,20 +440,7 @@ function Home() {
                         {/* <ResetCenterView  /> */}
                     </>
                 )}
-                {/* {image &&
-                    boundingbox?.length > 0 &&
-                    image.map((item, index) => (
-                        <div key={index}>
-                            <ImageOverlay
-                                url={item}
-                                bounds={[
-                                    [boundingbox[0], boundingbox[2]],
-                                    [boundingbox[1], boundingbox[3]],
-                                ]}
-                                opacity={opacity}
-                            />
-                        </div>
-                    ))} */}
+              
                 {selectedPosition && (
                     <Marker position={selectedPosition}>
                         <Popup>Vị trí đã chọn</Popup>
@@ -483,14 +448,14 @@ function Home() {
                 )}
                 {lat && lon && (
                     <>
-                        <Marker position={[lat, lon]} eventHandlers={{ click: () => console.log('hello') }}>
+                        <Marker position={[lat, lon]}>
                             <Popup>Vị trí trung tâm</Popup>
                         </Marker>
                         <ResetCenterView lat={lat} lon={lon} />
                     </>
                 )}
 
-                {listMarker &&
+                {listMarker.length > 0 &&
                     listMarker.map((marker) => (
                         <Marker key={marker.id} position={[marker.latitude, marker.longitude]} icon={customIcon}>
                             <Popup>
@@ -522,6 +487,8 @@ function Home() {
                         images={selectedMarker.imageLink}
                         description={selectedMarker.description}
                         priceOnM2={selectedMarker.priceOnM2}
+                        typeArea={selectedMarker.typeArea}
+                        area={selectedMarker.area}
                     />
                 )}
             </MapContainer>

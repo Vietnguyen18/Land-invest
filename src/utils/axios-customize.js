@@ -11,12 +11,26 @@ const instance = axios.create({
     }
 });
 
+// export const refreshAccessToken = async (id) => {
+//   try {
+//       const response = await instance.post(`/refresh_token/${id}`);
+//       const { access_token } = response.data;
+      
+//       // Cập nhật access token mới vào local storage hoặc cookies
+//       localStorage.setItem('access_token', access_token);
+      
+//       return response.data;
+//   } catch (error) {
+//       console.error('Refresh token error:', error);
+//       throw error;
+//   }
+// };
+// instance.defaults.headers.common = {'Authorization': `Bearer ${localStorage.getItem('access_token')}`}
 
-// Handle token refresh
-const handleRefreshToken = async (userId) => {
+export const handleRefreshToken = async (userId) => {
   try {
       const res = await instance.post(`/refresh_token/${userId}`);
-      console.log('res data refresh token',res);
+      console.log(res);
       if (res && res.data) {
           const access_token = res.data.access_token;
           localStorage.setItem('refresh_token', access_token);
@@ -47,31 +61,24 @@ const NO_RETRY_HEADER = 'x-no-retry';
 
 // Response interceptor
 instance.interceptors.response.use(
-  function (response) {
-    // Return response if successful
-    return response;
-  },
-  async function (error) {
-    const originalConfig = error.config;
-    const userId = localStorage.getItem('user_id'); // Assuming the user ID is stored in localStorage
-
-    // Handle 401 errors (Unauthorized)
-    if (error.response && error.response.status === 401 && !originalConfig.headers[NO_RETRY_HEADER]) {
-      const access_token = await handleRefreshToken(userId);
-      if (access_token) {
-        originalConfig.headers[NO_RETRY_HEADER] = 'true';
-        originalConfig.headers['Authorization'] = `Bearer ${access_token}`;
-        return instance.request(originalConfig);
+    function (response) {
+      return response;
+    },
+    async function  (error) {
+      if (error.config && error.response && +error.response.status === 401 && !error.config.headers[NO_RETRY_HEADER]) {
+        const access_token = await handleRefreshToken();
+        error.config.headers[NO_RETRY_HEADER] = 'true';
+        if(access_token) {
+          // error.config.headers['Authorization'] = `Bearer ${access_token}`
+          // localStorage.setItem('access_token', access_token)
+          return instance.request(error.config);
+        }
       }
+  
+      if(error.config && error.response && +error.response.status === 400 && error.config.url === '/refresh_token/249'){
+        window.location.href = './login';
+      }
+      return error?.response?.data ?? Promise.reject(error);
     }
-
-    // Redirect to login on 400 error during refresh
-    if (error.response && error.response.status === 400 && originalConfig.url === `/refresh_token/${userId}`) {
-      window.location.href = './login';
-    }
-
-    return Promise.reject(error.response ? error.response.data : error);
-  }
-);
-
+  );
 export default instance;
