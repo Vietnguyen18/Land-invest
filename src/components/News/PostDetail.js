@@ -6,33 +6,29 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import "./PostDetail.scss"
 import { useEffect, useState } from "react";
-import { CheckUserOnline, CreateComment, DeleteComment, ViewlistBox, ViewlistComment, ViewlistPost } from "../../services/api";
+import { CheckUserOnline, CreateComment, DeleteComment, fetchAccount, ViewlistBox, ViewlistComment} from "../../services/api";
 import moment from "moment";
-import { useSelector } from "react-redux";
-import Comment from "./comment/Comment";
 import { VscSend } from "react-icons/vsc";
-import { message, notification, Popconfirm } from "antd";
-import { CiEdit } from "react-icons/ci";
-import { MdOutlineDeleteOutline } from "react-icons/md";
+import { message, notification} from "antd";
 import { useLocation } from 'react-router-dom';
-import CommentModalUpdate from "./comment/ModalUpdateComment";
-import GroupModalUpdate from "../../pages/Admin/ListGroup/GroupModalUpdate";
 
 
 const PostDetail = (props) => {
 const {dataPost} = props
+console.log('dataPost',dataPost);
 const [listViewBox, setListViewBox] = useState([])
-const [listViewPost, setListViewPost] = useState([])
 const [listCheckOnline, setListCheckOnline] = useState({})
-const listUser = useSelector((state) => state.listbox.listuser);
+console.log('listCheckOnline',listCheckOnline);
+const [listUser, setListUser] = useState([]) // list all user
 const user = listUser.find(user => user.userid === dataPost.UserID);
 const [inputContent, setInputContent] = useState('')
 const [inputImage, setInputImage] = useState(null)
 const [listViewComment, setListViewComment] = useState([])
-const [dataUpdate, setDataUpdate] = useState([]);
+// const [dataUpdate, setDataUpdate] = useState([]);
 const location = useLocation();
 const [postId, setPostId] = useState(null);
-const [openModalUpdate, setOpenModalUpdate] = useState(false);
+// const [openModalUpdate, setOpenModalUpdate] = useState(false);
+
 
 useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -42,31 +38,30 @@ useEffect(() => {
 
 console.log('postId:' ,postId)
 console.log('listViewComment:' ,listViewComment)
-let userIDPost = dataPost.UserID;
-useEffect(()=>{
-    getListViewComment();
-},[postId])
+// useEffect(()=>{
+//     getListViewComment();
+// },[postId])
 
-const getListViewComment = async() => {
-    let res = await ViewlistComment(postId)
-    if(res && res?.data) {
-        setListViewComment(res.data);
-    }
-    console.log("res viewBox",res)
-}
+// const getListViewComment = async() => {
+//     let res = await ViewlistComment(postId)
+//     if(res && res?.data) {
+//         setListViewComment(res.data);
+//     }
+//     console.log("res viewBox",res)
+// }
 
+    useEffect(()=>{
+        fecthListViewComment()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[postId])
+    
+    const fecthListViewComment = async () =>{
+        const res = await ViewlistComment(postId)
+        if(res && res?.data) {
+            setListViewComment(res.data)
+        }
+    } 
 const handleClickNewComment = async () => {
-    console.log("datapostnew: ", inputContent, inputImage);
-
-    // const token = localStorage.getItem('access_token');
-    // if (!token) {
-    //     notification.error({
-    //         message: 'Lỗi xác thực',
-    //         description: 'Vui lòng đăng nhập lại!'
-    //     });
-    //     return;
-    // }
-
     const res = await CreateComment(postId,inputContent, inputImage);
     res.headers= {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -74,8 +69,8 @@ const handleClickNewComment = async () => {
     if (res) {
         console.log("content comment: ", res)
         message.success('Thêm mới Comment thành công');
-        getListViewComment(postId);
         setInputContent('')
+        fecthListViewComment(postId)
     } else {
         notification.error({
             message: 'Đã có lỗi xảy ra',
@@ -87,45 +82,43 @@ const handleClickNewComment = async () => {
 const handleInputContentChange = (e) => {
     setInputContent(e.target.value);
 };
-const handleInputImageChange = (e) => {
-    setInputImage(e.target.value);
-};
+// const handleInputImageChange = (e) => {
+//     setInputImage(e.target.value);
+// };
 
-    useEffect(()=>{
-        getListViewBox();
-        getListViewPost();
-        getCheckUserOnline(userIDPost)
+
+    // api 
+    useEffect(() => {
+        // api list box
+        const fetchViewListBox = async () => {
+            const res = await ViewlistBox()
+            setListViewBox(res.data)
+        }        
+        //api list user
+        const fetchListUser = async () => {
+            const res = await fetchAccount()
+            setListUser(res)
+        }
+
+        fetchViewListBox()
+        fetchListUser()
     },[])
 
-    useEffect(()=>{
-        getCheckUserOnline(userIDPost)
-    },[userIDPost])
 
-    const getListViewBox = async() => {
-        let res = await ViewlistBox()
-        if(res && res?.data) {
-            setListViewBox(res.data);
-        }
-        console.log("res viewBox",res)
-    }
+    useEffect(() => {
+        // api checkOnline
+        const fetchCheckUserOnline = async () => {
+            const res = await CheckUserOnline(user?.userid)
+                if (res) {
+                    setListCheckOnline(prevState => ({
+                        ...prevState,
+                        [user?.userid]: res.data
+                }));
+            }
 
-    const getListViewPost = async() => {
-        let res = await ViewlistPost()
-        if(res && res?.data) {
-            setListViewPost(res.data);
         }
-        console.log("res viewPost",res)
-    }
-    console.log("listViewPost",listViewPost)
-    const getCheckUserOnline = async () => {
-        let res = await CheckUserOnline(userIDPost);
-        if (res) {
-            setListCheckOnline(prevState => ({
-                ...prevState,
-                [userIDPost]: res.data
-            }));
-        }
-    }
+        fetchCheckUserOnline()
+    },[user?.userid])
 
     const userOnlineStatus = listCheckOnline[dataPost?.UserID];
     console.log("userOnlineStatus:",userOnlineStatus)
@@ -158,6 +151,10 @@ const handleInputImageChange = (e) => {
             })
         }
     }
+
+    
+
+
     return (
         <Container className="news-detail-container">
           <Row className="news-row">
@@ -293,13 +290,12 @@ const handleInputImageChange = (e) => {
 
                 <div className="tag-oustanding">
                     <h2 className="tags-title">List Box</h2>
-
                     {
                         listViewBox && listViewBox.length > 0 && listViewBox.map((item, index) => {
                             return (
                                 <div className="news-hot-item" key={`listbox-${index}`}>
                                     <div className="news-hot-icon">
-                                        <img className="news-hot-icon-img" src={item.avatarLink}/>
+                                        <img className="news-hot-icon-img" src={item.avatarLink} alt=""/>
                                     </div>
                                     <div className="news-hot-content">
                                         <h2 className="news-hot-title">{item.BoxName}</h2>
@@ -324,47 +320,47 @@ const handleInputImageChange = (e) => {
                     <input className="post-new-input" placeholder="Bạn đang nghĩ gì?"/>
                     <button className="post-new-btn">Đăng bài</button>
                 </div>
-
+{/* content detail */}
                 {dataPost.Title && dataPost.Content &&
-                
                 <div className="post-item">
                     <div className="post-item-content">
-                        <div className="avatar-post">
-                        </div>
                         <div className="content-post">
-                            <div className="title-post">
-                                <h2>{`[${dataPost.Title}] ${dataPost.Content}`}</h2>
-                                <div className="like-post">
-                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M4.28472 1.28635C0.582052 2.41945 -0.738149 6.24881 0.391497 9.59912C2.20862 14.9716 10.0014 19 10.0014 19C10.0014 19 17.8521 14.9096 19.6102 9.59912C20.7388 6.24881 19.4102 2.41945 15.7075 1.28635C13.762 0.693293 11.5332 1.07333 10.0014 2.19843C8.38219 1.04133 6.23239 0.689293 4.28472 1.28635ZM13.7574 4.27342C13.3561 4.17072 12.9476 4.41276 12.8448 4.81404C12.7421 5.21532 12.9842 5.62388 13.3855 5.72658C14.768 6.08042 15.5877 7.00903 15.6825 7.93366C15.7247 8.34572 16.093 8.64549 16.5051 8.60323C16.9171 8.56097 17.2169 8.19267 17.1747 7.78062C16.9982 6.06045 15.5644 4.73591 13.7574 4.27342Z" fill="#C5D0E6"/>
-                                </svg>
-    
+                            <div className="user-post">
+                                <div className="info-user-post">
+                                    <div className="avatar-user">
+                                        <img src={dataPost.Avatar} alt="" />
+                                        {userOnlineStatus && <p className="check-online">{userOnlineStatus?.Status}</p>}
+                                    </div>
+                                    <div className="info-user">
+                                        <h4>{user?.FullName}</h4>
+                                        <p>{formatTimeDifference(timeDifference)}</p>
+                                    </div>
                                 </div>
+                                <div className="like-post">
+                                <svg  width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path className="icon" fill-rule="evenodd" clip-rule="evenodd" d="M4.28472 1.28635C0.582052 2.41945 -0.738149 6.24881 0.391497 9.59912C2.20862 14.9716 10.0014 19 10.0014 19C10.0014 19 17.8521 14.9096 19.6102 9.59912C20.7388 6.24881 19.4102 2.41945 15.7075 1.28635C13.762 0.693293 11.5332 1.07333 10.0014 2.19843C8.38219 1.04133 6.23239 0.689293 4.28472 1.28635ZM13.7574 4.27342C13.3561 4.17072 12.9476 4.41276 12.8448 4.81404C12.7421 5.21532 12.9842 5.62388 13.3855 5.72658C14.768 6.08042 15.5877 7.00903 15.6825 7.93366C15.7247 8.34572 16.093 8.64549 16.5051 8.60323C16.9171 8.56097 17.2169 8.19267 17.1747 7.78062C16.9982 6.06045 15.5644 4.73591 13.7574 4.27342Z" fill="#C5D0E6"/>
+                                </svg>
+                                </div>
+                            </div>
+                            <div className="title-post">
+                                <h2 className="post-title">{`[${dataPost.Title}]`}</h2>
+                                <p className="post-content">{dataPost.Content}</p>
                             </div>
                             <div className="hagtags-post">
                                 <div className="hagtags-pos-item">#hieuche</div>
                                 <div className="hagtags-pos-item">#dinhdung</div>
                                 <div className="hagtags-pos-item">#chesun</div>
                             </div>
-                            <div className="user-post">
-                                <div className="info-user-post">
-                                    <div className="avatar-user">
-                                        {userOnlineStatus && <p className="check-online">{userOnlineStatus.Status}</p>}
-                                    </div>
-                                    <div className="info-user">
-                                        <h4>{user.UserName}</h4>
-                                        <p>{formatTimeDifference(timeDifference)}</p>
-                                    </div>
-                                    {/* {listCheckOnline.Status} */}
-                                </div>
-                            </div>
                         </div>
                     </div>
-                    <div className="react-post">
+                    <div className="avatar-post">
+                            <img src={dataPost?.avatarLink}  alt=""/>
+                        </div>
+                    {/* <div className="react-post">
                         <p>651,324 Views</p>
                         <p>51,324 Likes</p>
                         <p>65 Comments</p>
-                    </div>
+                    </div> */}
                     <hr style={{width:'100%', background: '#fff',height:'0.2px', border:0, margin:0}}></hr>
                     
                     <div className="post-react">
@@ -391,7 +387,7 @@ const handleInputImageChange = (e) => {
                                     <div className="user-post">
                                         <div className="info-user-post">
                                             <div className="avatar-user">
-                                                <img src={comment.Avatar} />
+                                                <img src={comment.Avatar} alt=""/>
                                                 {userOnlineStatus && <p className="check-online">{userOnlineStatus.Status}</p>}
                                             </div>
                                             <div className="info-user">
@@ -429,50 +425,6 @@ const handleInputImageChange = (e) => {
 
                 </div>
                 }
-                {/* {listViewPost && listViewPost.length > 0 && 
-                    listViewPost.map((post, index)=>{
-                        return (
-                            <div className="post-item">
-                                <div className="avatar-post">
-                                </div>
-                                <div className="content-post">
-                                    <div className="title-post">
-                                        <h2>{`[${post.Title}] ${post.Content}`}</h2>
-                                        <div className="like-post">
-                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M4.28472 1.28635C0.582052 2.41945 -0.738149 6.24881 0.391497 9.59912C2.20862 14.9716 10.0014 19 10.0014 19C10.0014 19 17.8521 14.9096 19.6102 9.59912C20.7388 6.24881 19.4102 2.41945 15.7075 1.28635C13.762 0.693293 11.5332 1.07333 10.0014 2.19843C8.38219 1.04133 6.23239 0.689293 4.28472 1.28635ZM13.7574 4.27342C13.3561 4.17072 12.9476 4.41276 12.8448 4.81404C12.7421 5.21532 12.9842 5.62388 13.3855 5.72658C14.768 6.08042 15.5877 7.00903 15.6825 7.93366C15.7247 8.34572 16.093 8.64549 16.5051 8.60323C16.9171 8.56097 17.2169 8.19267 17.1747 7.78062C16.9982 6.06045 15.5644 4.73591 13.7574 4.27342Z" fill="#C5D0E6"/>
-                                        </svg>
-
-                                        </div>
-                                    </div>
-                                    <div className="hagtags-post">
-                                        <div className="hagtags-pos-item">#hieuche</div>
-                                        <div className="hagtags-pos-item">#dinhdung</div>
-                                        <div className="hagtags-pos-item">#chesun</div>
-                                    </div>
-                                    <div className="user-post">
-                                        <div className="info-user-post">
-                                            <div className="avatar-user">
-                                            </div>
-                                            <div className="info-user">
-                                                <h4>Mai Ngo</h4>
-                                                <p>3 days ago</p>
-                                            </div>
-                                        </div>
-                                        <div className="react-post">
-                                            <p>651,324 Views</p>
-                                            <p>51,324 Likes</p>
-                                            <p>65 Comments</p>
-                                        </div>
-
-                                    </div>
-
-                                </div>
-                            </div>
-                        )
-                    })
-                } */}
-
             </Col>
             <Col className="content-right">
                 <div className="old-post-right">

@@ -12,6 +12,7 @@ const ModalComponent = ({ CloseModal,IDAuction}) => {
   const [apiUser, setApiUser] = useState([]);
   console.log('apiUser',apiUser);
   const dataUserID = useSelector((state) => state.account.dataUser);
+  const userId = dataUserID?.UserID // userid
     useEffect(() => {
       const fetchUserData = async () => {
         try {
@@ -56,7 +57,7 @@ const ModalComponent = ({ CloseModal,IDAuction}) => {
     }
 
     // api comment
-    const response = await fetchCreateComment(IDAuction, comment, dataUserID, {
+    const response = await fetchCreateComment(IDAuction, comment, userId, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

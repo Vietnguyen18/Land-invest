@@ -33,7 +33,6 @@ const ModalCreatePost = (props) => {
     const [inputValueTitle, setInputValueTitle] = useState('');
     const [inputValueContent, setInputValueContent] = useState('');
     const [selectedValueGroup, setSelectedValueGroup] = useState(null);
-    console.log('selectedValueGroup',selectedValueGroup);
     // const [showSecondTextarea, setShowSecondTextarea] = useState(false);
     const textareaTitleRef = useRef(null);
     const textareaContentRef = useRef(null);
@@ -46,8 +45,6 @@ const ModalCreatePost = (props) => {
     const [showModalImage, setShowModalImage] = useState(false)
     const [files, setFiles] = useState([]);
     const [base64Images, setBase64Images] = useState([]);
-    console.log('base64Images',base64Images);
-    // const Images = files.map(file => file.name) // lấy đường dẫn ảnh
     // const editorStyle = {
     //     height: '200px', // Điều chỉnh chiều cao
     //     maxWidth: '100%' // Điều chỉnh chiều rộng
@@ -79,7 +76,6 @@ const ModalCreatePost = (props) => {
             console.log('res', res);
             if (res) {
                 message.success('Thêm mới Post thành công');
-                props.getListViewPost();
                 handleClose();
                 setInputValueTitle("");
                 setInputValueContent("");
@@ -193,39 +189,58 @@ const ModalCreatePost = (props) => {
 
       const handleFileImage = (event) => {
         const selectedFiles = Array.from(event.target.files);
+        const newFiles = [];
+        const newBase64Images = [];
+
         const fileReaders = selectedFiles.map(file => {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
-                reader.onloadend = () => resolve({ file, base64: reader.result });
-                reader.onerror = reject;
+                reader.onloadend = () => {
+                    const base64String = reader.result.split(',')[1]; // Exclude the prefix
+                    newFiles.push(file);
+                    newBase64Images.push(base64String);
+                    resolve();
+                };
                 reader.readAsDataURL(file);
             });
         });
 
-        Promise.all(fileReaders).then(results => {
-            const base64Images = results.map(result => result.base64);
-            setBase64Images(base64Images);
-            setFiles(selectedFiles);
+        Promise.all(fileReaders).then(() => {
+            setFiles(prevFiles => [...prevFiles, ...newFiles]);
+            setBase64Images(prevBase64Images => [...prevBase64Images, ...newBase64Images]);
             setShowModalImage(false);
         });
       }
 
       const removeFile = (index) => {
         const newFiles = [...files];
-        newFiles.splice(index, 1);
         const newBase64Images = [...base64Images];
+        newFiles.splice(index, 1);
         newBase64Images.splice(index, 1);
         setFiles(newFiles);
         setBase64Images(newBase64Images);
     };
 
-    const renderFilePreview = (base64, index) => {
-        return (
-            <div key={index} className="preview-file">
-                <img src={base64} alt={`preview-${index}`} className="preview-image" />
-                <span className="remove-icon" onClick={() => removeFile(index)}><IoMdCloseCircleOutline /></span>
-            </div>
-        );
+    const renderFilePreview = (file, index) => {
+        if (file.type.startsWith('image/')) {
+            return (
+                <div key={index} className="preview-file">
+                    <img src={URL.createObjectURL(file)} alt={file.name} className="preview-image" />
+                    <span className="remove-icon" onClick={() => removeFile(index)}><IoMdCloseCircleOutline /></span>
+                </div>
+            );
+        } else if (file.type.startsWith('video/')) {
+            return (
+                <div key={index} className="preview-file">
+                    <video controls className="preview-video">
+                        <source src={URL.createObjectURL(file)} type={file.type} />
+                        Your browser does not support the video tag.
+                    </video>
+                    <span className="remove-icon" onClick={() => removeFile(index)}><IoMdCloseCircleOutline /></span>
+                </div>
+            );
+        }
+        return null;
     };
 
     return (
@@ -294,7 +309,7 @@ const ModalCreatePost = (props) => {
                                 </div>)
                             }
                             <div className="preview-files">
-                                {base64Images.map((base64, index) => renderFilePreview(base64, index))}
+                                {files.map((file, index) => renderFilePreview(file, index))}
                             </div>
                         </div>
                         <div className="post-action">

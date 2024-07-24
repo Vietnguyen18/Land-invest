@@ -135,9 +135,9 @@ export const fetchOrganization = async () => {
     return response.data;
 }
 
-export const fetchCreateComment = async (IDAuction, comment , dataUserID) => {
+export const fetchCreateComment = async (IDAuction, comment , userId) => {
     const params = {
-        idUser: dataUserID,
+        idUser: userId,
         content: comment,
     };
     const response = await instance.post(`/api/landauctions/create_comment/${IDAuction}`,params)

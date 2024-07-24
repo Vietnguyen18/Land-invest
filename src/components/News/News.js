@@ -4,23 +4,28 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import "./News.scss"
 import moment from 'moment-timezone';
-import { useEffect,useRef, useState } from "react";
-import { CheckUserOnline, ViewlistBox, ViewlistPost } from "../../services/api";
-import { useNavigate } from "react-router-dom";
+import {useEffect,useRef, useState } from "react";
+import { CheckUserOnline, fetchAccount, ViewlistBox, ViewlistPost } from "../../services/api";
 import ModalCreatePost from "./createPost/ModalCreatePost";
-import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+// import { useSelector } from "react-redux";
+// import { notification } from "antd";
+
+
 
 const News = (props) => {
     const navigate = useNavigate();
     const [listViewBox, setListViewBox] = useState([])
-    // console.log('listViewBox',listViewBox);
     const [listCheckOnline, setListCheckOnline] = useState({})
     const [listViewPost, setListViewPost] = useState([])
     const [inputValue, setInputValue] = useState('');
     const [isShowModalLogin, setIsShowModalLogin] = useState(false);
     const textareaRef = useRef(null);
-    const listUser = useSelector((state) => state.listbox.listuser);
-    // console.log("res listUser",listUser)
+    const [listUser, setListUser] = useState([])
+
+
+
+    
 
     useEffect(() => {
         adjustTextareaHeight();
@@ -53,6 +58,55 @@ const News = (props) => {
     const handleClose = () => {
         setIsShowModalLogin(false);
     }
+    
+    useEffect(() => {
+        
+        // api list box
+        // const fetchViewListBox = async () => {
+        //     const res = await ViewlistBox()
+        //     setListViewBox(res.data)
+        // }
+        // api list post
+        // const fetchViewListPost = async () => {
+        //     const res = await ViewlistPost()
+        //     setListViewPost(res.data)
+        // }
+        //api list user
+        const fetchListUser = async () => {
+            const res = await fetchAccount()
+            setListUser(res)
+        }
+
+        // fetchViewListBox()
+        // fetchViewListPost()
+        fetchListUser()
+    },[])
+
+    // useEffect(() => {
+    //     // api checkOnline
+    //     const fetchCheckUserOnline = () => {
+    //         if(listViewPost.length > 0 && listUser.length > 0){
+    //             listViewPost.map(async (post) => {
+    //                 const user = listUser.find(user => user.userid === post.UserID)
+    //                     if(user) {
+    //                         const res = await CheckUserOnline(user.userid)
+    //                             if (res) {
+    //                                 setListCheckOnline(prevState => ({
+    //                                     ...prevState,
+    //                                     [user.userid]: res.data
+    //                                 }));
+    //                             }
+    //                     }
+    //             })
+    //             return null
+    //         }
+
+    //     }
+    //     fetchCheckUserOnline()
+    // },[listViewPost,listUser])
+
+
+    // code cũ
 
     const getListViewBox = async() => {
         let res = await ViewlistBox()
@@ -90,6 +144,9 @@ const News = (props) => {
         // console.log("res viewPost",res)
     }
     // console.log("listViewPost",listViewPost)
+
+
+
 
     const nonAccentVietnamese = (str) => {
         str = str.replace(/A|Á|À|Ã|Ạ|Â|Ấ|Ầ|Ẫ|Ậ|Ă|Ắ|Ằ|Ẵ|Ặ/g, "A");
@@ -135,9 +192,6 @@ const News = (props) => {
         const slug = convertSlug(post.Title);
         navigate(`/news/${slug}?id=${post.PostID}`)
     }
-
-   
-
     return (
         <>
             <Container className="news-container">
@@ -279,7 +333,7 @@ const News = (props) => {
                                 return (
                                     <div className="news-hot-item" key={`listbox-${index}`}>
                                         <div className="news-hot-icon">
-                                            <img className="news-hot-icon-img" src={item.avatarLink}/>
+                                            <img className="news-hot-icon-img" src={item.avatarLink} alt="avatar error"/>
                                         </div>
                                         <div className="news-hot-content">
                                             <h2 className="news-hot-title">{item.BoxName}</h2>
@@ -314,12 +368,10 @@ const News = (props) => {
                         <button onClick={()=>setIsShowModalLogin(true)} className="post-new-btn">Đăng bài</button>
                         
                     </div>
-    
+    {/* New Content list */}
                     {listViewPost && listUser.length > 0 && listViewPost.length > 0 && 
                         listViewPost.map((post, index)=>{
                             const user = listUser.find(user => user.userid === post.UserID);
-                            //getCheckUserOnline(user.userid);
-                            // console.log("test user:", user);
                             const userOnlineStatus = listCheckOnline[user?.userid];
                            // Calculate the time difference and adjust to Vietnamese time
                             const postTime = moment(post.PostTime).tz("Asia/Ho_Chi_Minh");
@@ -335,16 +387,21 @@ const News = (props) => {
                                 return `Just now`;
                             }
 
+                            const hasImages = post.Images && post.Images.length > 0;
+
                             return (
                                 <div className="post-item" style={{cursor:'pointer'}}  onClick={() => handleRedirectPost(post)}>
-                                    <div className="avatar-post">
-                                    </div>
                                     <div className="content-post">
-                                        <div className="title-post">
-                                            {/* <h2>{`[${post.Title}] ${post.Content}`}</h2> */}
-                                            <div style={{display:'flex', alignItems:'center'}}>
-                                                <h2>{`[${post.Title}]`}</h2>
-                                                <div className="content" dangerouslySetInnerHTML={{ __html: post.Content }} />
+                                    <div className="user-post">
+                                            <div className="info-user-post">
+                                                <div className="avatar-user">
+                                                    <img src={user?.avatarLink} alt="" />
+                                                    {userOnlineStatus && <p className="check-online">{userOnlineStatus.Status}</p>}
+                                                </div>
+                                                <div className="info-user">
+                                                    <h4>{user.FullName}</h4>
+                                                    <p>{formatTimeDifference(timeDifference)}</p>
+                                                </div>
                                             </div>
                                             <div className="like-post">
                                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -353,30 +410,37 @@ const News = (props) => {
     
                                             </div>
                                         </div>
+                                        <div className="title-post">
+                                            <h2 className="post-title">{`[${post.Title}]`}</h2>
+                                            <p className="post-content">{post.Content}</p>
+                                        </div>
+                                        {
+                                            hasImages ? (
+                                            <div className="avatar-post">
+                                                {
+                                                    post.Images.length > 0 && (
+                                                        post.Images.map((e, index)=>(
+                                                            <img src={e} 
+                                                                alt={`Images ${index}`}
+                                                                key={index}
+                                                            />
+                                                        ))
+                                                    )
+                                                }
+                                            </div>
+                                            ): null
+                                        }
+                                        
                                         <div className="hagtags-post">
                                             <div className="hagtags-pos-item">#hieuche</div>
                                             <div className="hagtags-pos-item">#dinhdung</div>
                                             <div className="hagtags-pos-item">#chesun</div>
                                         </div>
-                                        <div className="user-post">
-                                            <div className="info-user-post">
-                                                <div className="avatar-user">
-                                                    {userOnlineStatus && <p className="check-online">{userOnlineStatus.Status}</p>}
-                                                </div>
-                                                <div className="info-user">
-                                                    <h4>{user.userName}</h4>
-                                                    <p>{formatTimeDifference(timeDifference)}</p>
-                                                </div>
-                                                {/* {listCheckOnline.Status} */}
-                                            </div>
-                                            <div className="react-post">
-                                                <p>651,324 Views</p>
-                                                <p>51,324 Likes</p>
-                                                <p>65 Comments</p>
-                                            </div>
-    
+                                        <div className="react-post">
+                                            <p>651,324 Views</p>
+                                            <p>51,324 Likes</p>
+                                            <p>65 Comments</p>
                                         </div>
-    
                                     </div>
                                 </div>
                             )
@@ -467,7 +531,6 @@ const News = (props) => {
             <ModalCreatePost 
                 show={isShowModalLogin}
                 handleClose={handleClose}
-                getListViewPost={getListViewPost}
             />
         </>
         
