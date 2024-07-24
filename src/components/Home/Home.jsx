@@ -87,7 +87,7 @@ function Home() {
     const [location, setLocation] = useState([]);
     const [coodination, setCoodination] = useState([]);
     const { lat, lon, boundingbox, coordinates, displayName } = useSelector((state) => state.searchQuery.searchResult);
-    const mapData = useSelector((state) => state.map.data);
+    const imageRef = useRef(null)
     const listMarker = useSelector(selectFilteredMarkers)
     const dispatch = useDispatch()
     const locationLink = useLocation();
@@ -436,7 +436,7 @@ function Home() {
                 </LayersControl>
                 {imageUrl && location && (
                     <>
-                        <ImageOverlay url={"https://github.com/hthai1523/anh-quy-hoach/blob/main/CAOPHONG-2021.jpg?raw=true"} bounds={location} opacity={opacity} />
+                        <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />
                         {/* <ResetCenterView  /> */}
                     </>
                 )}
