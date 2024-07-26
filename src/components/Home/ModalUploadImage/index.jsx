@@ -21,7 +21,7 @@ const ModalUploadImage = ({
     handleCloseModal,
     selectedPosition,
     locationInfo,
-    handleSelectedDistrict,
+    
 }) => {
     const datauser = useSelector((state) => state.account.dataUser);
     const [images, setImages] = useState([]);

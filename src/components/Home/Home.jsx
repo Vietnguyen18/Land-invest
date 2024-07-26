@@ -10,50 +10,22 @@ import { RiSubtractLine } from 'react-icons/ri';
 import { FaAngleDown } from 'react-icons/fa6';
 
 import { GrLocation } from 'react-icons/gr';
-import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
-import {
-    MapContainer,
-    TileLayer,
-    ImageOverlay,
-    Marker,
-    Popup,
-    useMapEvents,
-    Polygon,
-    LayersControl,
-} from 'react-leaflet';
+import React, { useState, useRef } from 'react';
+
 import 'rc-slider/assets/index.css';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import {  message, notification } from 'antd';
+import { message, notification } from 'antd';
 import ModalDownMenu from './ModalDown/ModalDownMenu';
 import ModalPriceFilter from './ModalDown/ModalPriceFilter';
-import { useDispatch, useSelector } from 'react-redux';
-import ResetCenterView from '../../function/resetCenterView';
+import {  useSelector } from 'react-redux';
 import { DollarIcon, FileUploadIcon, SaveIcon } from '../Icons';
 import ModalUploadImage from './ModalUploadImage';
-import axios from 'axios';
-import DrawerView from './DrawerView';
 import 'leaflet/dist/leaflet.css';
-import fetchProvinceName, { getProvince } from '../../function/findProvince';
-import { findClosestDistrict } from '../../function/findClosestDistrict';
-import { formatToVND } from '../../function/formatToVND';
-import { setListMarker } from '../../redux/listMarker/listMarkerSllice';
-import { selectFilteredMarkers } from '../../redux/filter/filterSelector';
-import { useLocation } from 'react-router-dom';
-const mapContainerStyle = {
-    width: '100%',
-    height: 'calc(100vh - 56px)',
-};
-const center = [21.136663, 105.7473446];
 
-const customIcon = new L.Icon({
-    iconUrl: require('../../assets/marker.png'),
-    iconSize: [38, 38], // size of the icon
-    iconAnchor: [22, 38], // point of the icon which will correspond to marker's location
-    popupAnchor: [-3, -38], // point from which the popup should open relative to the iconAnchor
-});
+import Map from '../Map';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -62,40 +34,26 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+
 function Home() {
     const [opacity, setOpacity] = useState(1);
-    const [scale, setScale] = useState(1);
-    const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-    const [currentSize, setCurrentSize] = useState({ width: 0, height: 0 });
-    const [selectedPosition, setSelectedPosition] = useState(null); // State để lưu trữ vị trí được chọn trên bản đồ
+    const [selectedPosition, setSelectedPosition] = useState(null); 
     const [activeItem, setActiveItem] = useState(0);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isModalUpLoadVisible, setIsModalUploadVisible] = useState(false);
-    const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [isShowModalPrice, setIsShowModalPrice] = useState(false);
     const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
-    // const [imageUrl, setImageUrl] = useState('');
-    // const [location, setLocation] = useState([]);
-    const [polygon, setPolygon] = useState(null);
     const [provinceName, setProvinceName] = useState('');
-    const [idProvince, setIdProvince] = useState();
-    const [selectedMarker, setSelectedMarker] = useState(null);
-    const [selectedDistrict, setSelectedDistrict] = useState(null);
 
-    // const [coordinates, setCoordinates] = useState([]);
-    const [imageUrl, setImageUrl] = useState();
-    const [location, setLocation] = useState([]);
-    const [coodination, setCoodination] = useState([]);
-    const { lat, lon, boundingbox, coordinates, displayName } = useSelector((state) => state.searchQuery.searchResult);
-    const imageRef = useRef(null)
-    const listMarker = useSelector(selectFilteredMarkers)
-    const dispatch = useDispatch()
-    const locationLink = useLocation();
+    const {  displayName } = useSelector((state) => state.searchQuery.searchResult);
 
-    const { BaseLayer } = LayersControl;
     const handleSliderChange = (event) => {
         setOpacity(event.target.value);
     };
+
+    const handleSetProvinceName = (locationInfo) => {
+        setProvinceName(locationInfo);
+    }
 
     const handleLocationArrowClick = () => {
         if (!selectedPosition) {
@@ -106,119 +64,12 @@ function Home() {
         }
     };
 
-    const handleSelectedDistrict = (id) => {
-        // console.log(id + 1)
-        setSelectedDistrict(id);
-    };
-
+   
     const handleCloseModal = () => {
         setIsModalUploadVisible(false);
     };
 
-    const closeDrawer = () => {
-        setIsDrawerVisible(false);
-    };
-
-    // const onDrop = useCallback((acceptedFiles) => {
-    //     const file = acceptedFiles[0];
-    //     console.log('File', file);
-
-    //     if (file && file.type.startsWith('image/')) {
-    //         const img = new Image();
-    //         img.onload = () => {
-    //             URL.revokeObjectURL(img.src);
-    //             setImage((prev) => [...prev, img]);
-    //             setImageSize({
-    //                 width: img.width,
-    //                 height: img.height,
-    //             });
-    //             setCurrentSize({ width: img.width, height: img.height });
-    //             // setIsLoading(false);
-    //         };
-
-    //         img.onerror = (error) => {
-    //             console.error('Error loading image:', error);
-    //             // setIsLoading(false);
-    //         };
-
-    //         img.src = URL.createObjectURL(file);
-    //     } else {
-    //         console.error('Accepted file is not an image');
-    //     }
-    // }, []);
-
-    // const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: 'image/*' });
-
-    useEffect(() => {
-        if (imageSize.width && imageSize.height) {
-            const newWidth = imageSize.width * scale;
-            const newHeight = imageSize.height * scale;
-            setCurrentSize({ width: newWidth, height: newHeight });
-        }
-    }, [scale, imageSize]);
-
-    // useEffect(() => {
-    //     const handleZoomEnd = () => {
-    //         const zoom = mapRef.current.getZoom();
-    //         setMapZoom(zoom);
-    //     };
-
-    //     if (mapRef.current) {
-    //         mapRef.current.on('zoomend', handleZoomEnd);
-    //     }
-
-    //     return () => {
-    //         if (mapRef.current) {
-    //             mapRef.current.off('zoomend', handleZoomEnd);
-    //         }
-    //     };
-    // }, []);
-
-    // const calculateImageBounds = useCallback((center, size) => {
-    //     const halfWidth = size.width / 2;
-    //     const halfHeight = size.height / 2;
-    //     return [
-    //         [center[0] - halfHeight / 111320, center[1] - halfWidth / 111320],
-    //         [center[0] + halfHeight / 111320, center[1] + halfWidth / 111320],
-    //     ];
-    // }, []);
-
-    const mapRef = useRef();
-
-    const MapEvents = () => {
-        const mapInstance = useMapEvents({
-            click: async (e) => {
-                const { lat, lng } = e.latlng;
-                setSelectedPosition({ lat, lng });
-                const locationInfo = await fetchProvinceName(lat, lng);
-                console.log(locationInfo);
-                setProvinceName(locationInfo);
-            },
-            zoom: () => {
-                if (mapInstance.getZoom() >= 8) {
-                    const center = mapInstance.getCenter();
-                    handleZoomEnd(center.lat, center.lng);
-                }
-            },
-        });
-
-        return null;
-    };
-
-    const handleZoomEnd = async (lat, lng) => {
-        try {
-            const locationInfo = await fetchProvinceName(lat, lng);
-            console.log('Zoom end location info:', locationInfo);
-            const res = await getProvince(locationInfo.provinceName);
-            console.log(res);
-            const data = await findClosestDistrict(res.TinhThanhPhoID, locationInfo.districtName);
-
-            data.found ? setIdProvince(data.districtId) : console.log(data.message);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
+   
     const handleClick = (index) => {
         setActiveItem(index);
         if (index === 3) {
@@ -241,61 +92,9 @@ function Home() {
         });
     };
 
-    
-    useEffect(() => {
-        setCoodination(coordinates);
-    }, [coordinates]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const { data } = await axios.get(
-                    `https://apilandinvest.gachmen.org/api/location/list_info_by_district/${idProvince}`,
-                );
-                // setListMarker(data.data);
-                data.data ? dispatch(setListMarker(data.data)) : dispatch(setListMarker([]));
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-
-        fetchData();
-    }, [dispatch, idProvince]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const searchParams = new URLSearchParams(locationLink.search);
-                const quyhoach = searchParams.get('quyhoach');
-                console.log(quyhoach);
-                if (quyhoach) {
-                    const { data } = await axios.get(`https://apilandinvest.gachmen.org/api/districts/detail/${quyhoach}`);
-                    setImageUrl(data[0].imageHttp);
-                    setLocation(JSON.parse(data[0].location));
-                    setCoodination(JSON.parse(data[0].coordation));
-                } 
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-
-        fetchData();
-    
-    }, [locationLink.search])
-    
-
-    useEffect(() => {
-        if (coodination && coodination.length > 0 && Array.isArray(coodination[0])) {
-            const leafletcoodination = coodination[0].map((coord) => [coord[1], coord[0]]);
-            setPolygon(leafletcoodination);
-        } else {
-            setPolygon(null);
-        }
-    }, [coodination]);
-
+   
     return (
         <div className="home-container">
-       
             <div
                 className="slider-container"
                 style={{
@@ -407,91 +206,7 @@ function Home() {
             </div>
 
             {/* Map Container */}
-            <MapContainer
-                style={mapContainerStyle}
-                center={center}
-                zoom={13}
-                maxZoom={30}
-                whenReady={(map) => {
-                    mapRef.current = map.target;
-                }}
-            >
-                <MapEvents />
-                <LayersControl>
-                    <BaseLayer checked name="Map vệ tinh">
-                        <TileLayer
-                            url="http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
-                            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-                            maxZoom={30}
-                            attribution="&copy; <a href='https://www.google.com/maps'>Google Maps</a> contributors"
-                        />
-                    </BaseLayer>
-                    <BaseLayer name="Map mặc định">
-                        <TileLayer
-                            maxZoom={22}
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                    </BaseLayer>
-                </LayersControl>
-                {imageUrl && location && (
-                    <>
-                        <ImageOverlay url={imageUrl} bounds={location} opacity={opacity} />
-                        {/* <ResetCenterView  /> */}
-                    </>
-                )}
-              
-                {selectedPosition && (
-                    <Marker position={selectedPosition}>
-                        <Popup>Vị trí đã chọn</Popup>
-                    </Marker>
-                )}
-                {lat && lon && (
-                    <>
-                        <Marker position={[lat, lon]}>
-                            <Popup>Vị trí trung tâm</Popup>
-                        </Marker>
-                        <ResetCenterView lat={lat} lon={lon} />
-                    </>
-                )}
-
-                {listMarker.length > 0 &&
-                    listMarker.map((marker) => (
-                        <Marker key={marker.id} position={[marker.latitude, marker.longitude]} icon={customIcon}>
-                            <Popup>
-                                <div>
-                                    <h3 style={{ fontWeight: 600 }}>{marker.description}</h3>
-                                    <p style={{ fontSize: 20, fontWeight: 400, margin: '12px 0' }}>
-                                        Giá/m²: {formatToVND(marker.priceOnM2)}
-                                    </p>
-                                    <button
-                                        className="button--detail"
-                                        onClick={() => {
-                                            setIsDrawerVisible(true);
-                                            setSelectedMarker(marker);
-                                        }}
-                                    >
-                                        Xem chi tiết
-                                    </button>
-                                </div>
-                            </Popup>
-                        </Marker>
-                    ))}
-
-                {polygon && <Polygon pathOptions={{ fillColor: 'transparent' }} positions={polygon} />}
-                {selectedMarker && (
-                    <DrawerView
-                        isDrawerVisible={isDrawerVisible}
-                        closeDrawer={closeDrawer}
-                        addAt={selectedMarker.addAt}
-                        images={selectedMarker.imageLink}
-                        description={selectedMarker.description}
-                        priceOnM2={selectedMarker.priceOnM2}
-                        typeArea={selectedMarker.typeArea}
-                        area={selectedMarker.area}
-                    />
-                )}
-            </MapContainer>
+            <Map opacity={opacity} handleSetProvinceName={handleSetProvinceName} setSelectedPosition={setSelectedPosition} selectedPosition={selectedPosition}  />
 
             <ModalDownMenu
                 show={isModalVisible}
@@ -515,10 +230,9 @@ function Home() {
                 handleCloseModal={handleCloseModal}
                 selectedPosition={selectedPosition}
                 locationInfo={provinceName}
-                handleSelectedDistrict={handleSelectedDistrict}
             />
         </div>
     );
 }
 
-export default memo(Home);
+export default Home;
