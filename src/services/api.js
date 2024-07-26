@@ -243,3 +243,14 @@ export const DeletePost = (PostID) => {
 export const DeleteGroup = (GroupID) => {
     return instance.delete(`/api/group/remove_group/${GroupID}`);
 }
+
+export const LikePost = (idUser, idPost) => {
+    return instance.post(`https://apilandinvest.gachmen.org/api/forum/like_post/${idUser}/${idPost}`)
+}
+
+export const ListUserLike = (idPost) => {
+    return instance.get(`https://apilandinvest.gachmen.org/api/forum/list_user_like_post/${idPost}`)
+}
+export const numberInteractions = (idPost) => {
+    return instance.get(`/api/forum/number_info_post/${idPost}`)
+}

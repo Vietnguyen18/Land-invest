@@ -6,33 +6,22 @@ import { useEffect, useRef, useState } from 'react';
 import importImage from '../../../assets/importImage.png';
 import importIcon from '../../../assets/importIcon.png';
 import importLocation from '../../../assets/importLocation.png';
-import importTag from '../../../assets/importTag.png';
 import { LuMoreHorizontal } from "react-icons/lu";
 import { Avatar, Space, message, notification } from 'antd';
 import { useSelector } from 'react-redux';
 import { CreatePost, fetchAccount } from '../../../services/api';
-import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Import Quill's CSS
 import { IoMdCloseCircleOutline } from 'react-icons/io';
 
-const modules = {
-  toolbar: [
-    [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-    [{size: []}],
-    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-    [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
-    ['link', 'image', 'video'],
-    ['clean']
-  ],
-};
 
 const iconAvatar = 'https://png.pngtree.com/png-clipart/20210608/ourlarge/pngtree-dark-gray-simple-avatar-png-image_3418404.jpg'
 
 const ModalCreatePost = (props) => {
-    const { handleClose, show } = props;
+    const { handleClose, show,onPostCreated } = props;
     const [inputValueTitle, setInputValueTitle] = useState('');
     const [inputValueContent, setInputValueContent] = useState('');
     const [selectedValueGroup, setSelectedValueGroup] = useState(null);
+    console.log('selectedValueGroup',selectedValueGroup);
     // const [showSecondTextarea, setShowSecondTextarea] = useState(false);
     const textareaTitleRef = useRef(null);
     const textareaContentRef = useRef(null);
@@ -45,58 +34,15 @@ const ModalCreatePost = (props) => {
     const [showModalImage, setShowModalImage] = useState(false)
     const [files, setFiles] = useState([]);
     const [base64Images, setBase64Images] = useState([]);
-    // const editorStyle = {
-    //     height: '200px', // Điều chỉnh chiều cao
-    //     maxWidth: '100%' // Điều chỉnh chiều rộng
-    //   };
-      
-    //   const editorContainerStyle = {
-    //     height: '100%'
-    //   };
+
+    console.log('listGroups',listGroups);
+
+
+
+
     const handleChangeValueGroup = (event) => {
         setSelectedValueGroup(Number(event.target.value));
       };
-
-      //click new post
-      const handleClickNewPost = async () => {
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            notification.error({
-                message: 'Lỗi xác thực',
-                description: 'Vui lòng đăng nhập lại!'
-            });
-            return;
-        }
-        try{
-            const res = await CreatePost(selectedValueGroup, inputValueTitle, inputValueContent,PostLatitude, PostLongitude,base64Images, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            console.log('res', res);
-            if (res) {
-                message.success('Thêm mới Post thành công');
-                handleClose();
-                setInputValueTitle("");
-                setInputValueContent("");
-                setFiles([]);
-                setBase64Images([]);
-            } else {
-                notification.error({
-                    message: 'Đã có lỗi xảy ra',
-                    description: res.message
-                });
-            }
-        }catch(error){
-            console.error('Error', error);
-            notification.error({
-                message: 'Error',
-                description: error.message && Array.isArray(error.message) ? error.message[0] : error.message,
-                duration: 5
-              });
-        }
-    
-    };
 
 
     useEffect(() => {
@@ -139,12 +85,6 @@ const ModalCreatePost = (props) => {
     const handleInputTitleChange = (e) => {
         setInputValueTitle(e.target.value);
     };
-    // const handleInputContentChange = (value) => {
-    //     setInputValueContent(value);
-    // };
-    // const handleTextareaClick = () => {
-    //     setShowSecondTextarea(true);
-    // };
 
 
      //User
@@ -221,6 +161,52 @@ const ModalCreatePost = (props) => {
         setBase64Images(newBase64Images);
     };
 
+    //click new post
+    const handleClickNewPost = async () => {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            notification.error({
+                message: 'Authentication error',
+                description: 'Please log in again!'
+            });
+            return;
+        }
+        try{
+            const res = await CreatePost(selectedValueGroup, inputValueTitle, inputValueContent,PostLatitude, PostLongitude,base64Images, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log('res', res.data);
+            if (res.data) {
+                message.success('Added new post successfully');
+                handleClose();
+                setInputValueTitle("");
+                setInputValueContent("");
+                setFiles([]);
+                setBase64Images([]);
+                if (res.data.length > 0) {
+                    onPostCreated(res.data[0]);
+                } else {
+                    message.error('No posts were created.');
+                }
+            } else {
+                notification.error({
+                    message: 'An error has occurred',
+                    description: res.message
+                });
+            }
+        }catch(error){
+            console.error('An error has occurred', error);
+            notification.error({
+                message: 'An error has occurred',
+                description: error.message && Array.isArray(error.message) ? error.message[0] : error.message,
+                duration: 5
+              });
+        }
+    
+    };
+
     const renderFilePreview = (file, index) => {
         if (file.type.startsWith('image/')) {
             return (
@@ -234,7 +220,6 @@ const ModalCreatePost = (props) => {
                 <div key={index} className="preview-file">
                     <video controls className="preview-video">
                         <source src={URL.createObjectURL(file)} type={file.type} />
-                        Your browser does not support the video tag.
                     </video>
                     <span className="remove-icon" onClick={() => removeFile(index)}><IoMdCloseCircleOutline /></span>
                 </div>
@@ -262,7 +247,7 @@ const ModalCreatePost = (props) => {
                                 {listGroups && 
                                     listGroups.map((group, index) => (
                                     <option key={`namegroup-${index}`} value={group.GroupID}>
-                                        {group.GroupID}
+                                        {group.GroupName}
                                     </option>
                                     ))
                                 }
@@ -277,16 +262,6 @@ const ModalCreatePost = (props) => {
                                 ref={textareaTitleRef}
                                 style={{ cursor: 'pointer', padding:'8px 20px', margin:'auto 0' , height:'40px', border:'solid 1px #ccc', marginBottom:'10px' }}
                             ></textarea>
-                            {/* <div style={editorStyle}>
-                                <ReactQuill 
-                                placeholder="Nội dung..." 
-                                style={editorContainerStyle} 
-                                className="content-post" 
-                                value={inputValueContent} 
-                                onChange={handleInputContentChange} 
-                                modules={modules} />
-                                
-                                </div> */}
                             <textarea
                                 className="post-new-content"
                                 placeholder={`${apiUser.FullName} ơi, bạn đăng muốn viết gì `}
@@ -327,7 +302,6 @@ const ModalCreatePost = (props) => {
                                 <span className='icon-post-forums'>
                                     <LuMoreHorizontal size={30} className='more-icon' />
                                 </span>
-                                {/* <img src={importTag} alt='anh lỗi' /> */}
                             </div>
                         </div>
                     </div>

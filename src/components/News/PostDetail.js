@@ -1,26 +1,34 @@
-import { SlLike } from "react-icons/sl";
 import Container from "react-bootstrap/esm/Container";
 import { FaRegComment } from "react-icons/fa6";
 import { PiShareFatLight } from "react-icons/pi";
+import { BiSolidLike } from "react-icons/bi";
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import "./PostDetail.scss"
 import { useEffect, useState } from "react";
-import { CheckUserOnline, CreateComment, DeleteComment, fetchAccount, ViewlistBox, ViewlistComment} from "../../services/api";
+import { CheckUserOnline, CreateComment, DeleteComment, fetchAccount, LikePost, ListUserLike, numberInteractions, UpdateComment, ViewlistBox, ViewlistComment} from "../../services/api";
 import moment from "moment";
 import { VscSend } from "react-icons/vsc";
 import { message, notification} from "antd";
 import { useLocation } from 'react-router-dom';
+import { useSelector } from "react-redux";
+import { IoEllipsisVerticalCircleSharp } from "react-icons/io5";
+import { GoDotFill } from "react-icons/go";
+
+
+
+//avatar defaul
+const iconAvatar = 'https://png.pngtree.com/png-clipart/20210608/ourlarge/pngtree-dark-gray-simple-avatar-png-image_3418404.jpg'
 
 
 const PostDetail = (props) => {
 const {dataPost} = props
 console.log('dataPost',dataPost);
 const [listViewBox, setListViewBox] = useState([])
-const [listCheckOnline, setListCheckOnline] = useState({})
-console.log('listCheckOnline',listCheckOnline);
+const [listCheckOnline, setListCheckOnline] = useState([])
 const [listUser, setListUser] = useState([]) // list all user
 const user = listUser.find(user => user.userid === dataPost.UserID);
+const userID = useSelector((state) => state.account.dataUser?.UserID);
 const [inputContent, setInputContent] = useState('')
 const [inputImage, setInputImage] = useState(null)
 const [listViewComment, setListViewComment] = useState([])
@@ -28,6 +36,20 @@ const [listViewComment, setListViewComment] = useState([])
 const location = useLocation();
 const [postId, setPostId] = useState(null);
 // const [openModalUpdate, setOpenModalUpdate] = useState(false);
+const [likeStatus, setLikeStatus] = useState({})
+const [showModalListLike, setShowModalListLike] = useState(false)
+const [listUserLike, setListUserLike] = useState({})
+const [openModal, setOpenModal] = useState(null)
+const [openEditComment, setopenEditComment] = useState(null)
+const [EditComment, setEditComment] = useState('')
+const [isnumberInteractions, setNumberInteractions] = useState({})
+
+
+// lấy status conline
+const userOnlineStatus = listCheckOnline[dataPost?.UserID];
+//Kiểm tra xem likeStatus.message có phải là 'Like successful'
+const isLike = likeStatus.message === 'Like successful';
+const isListLike = listUserLike.message ?  null : 'Like successful';
 
 
 useEffect(() => {
@@ -36,20 +58,8 @@ useEffect(() => {
     setPostId(id);
 }, [location]);
 
-console.log('postId:' ,postId)
-console.log('listViewComment:' ,listViewComment)
-// useEffect(()=>{
-//     getListViewComment();
-// },[postId])
 
-// const getListViewComment = async() => {
-//     let res = await ViewlistComment(postId)
-//     if(res && res?.data) {
-//         setListViewComment(res.data);
-//     }
-//     console.log("res viewBox",res)
-// }
-
+   // comment 
     useEffect(()=>{
         fecthListViewComment()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -61,21 +71,30 @@ console.log('listViewComment:' ,listViewComment)
             setListViewComment(res.data)
         }
     } 
-const handleClickNewComment = async () => {
+    // new comment
+const handleClickNewComment = async (e) => {
     const res = await CreateComment(postId,inputContent, inputImage);
     res.headers= {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
     }
     if (res) {
         console.log("content comment: ", res)
-        message.success('Thêm mới Comment thành công');
+        message.success('Added new Comment successfully');
         setInputContent('')
         fecthListViewComment(postId)
+        fetchNumber()
     } else {
         notification.error({
             message: 'Đã có lỗi xảy ra',
             description: res.message
         });
+    }
+    e.preventDefault();
+};
+const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault(); 
+        handleClickNewComment(e);
     }
 };
 
@@ -85,7 +104,6 @@ const handleInputContentChange = (e) => {
 // const handleInputImageChange = (e) => {
 //     setInputImage(e.target.value);
 // };
-
 
     // api 
     useEffect(() => {
@@ -99,11 +117,25 @@ const handleInputContentChange = (e) => {
             const res = await fetchAccount()
             setListUser(res)
         }
-
+        
         fetchViewListBox()
         fetchListUser()
-    },[])
+        fetchNumber()
+        fecthListUserLike()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[postId])
+    
 
+        //call api list user like
+    const fecthListUserLike = async() => {  
+        const res = await ListUserLike(postId)
+        setListUserLike(res.data)
+    } 
+    // api number like comment share
+    const fetchNumber = async () => {
+        const res = await numberInteractions(postId)
+        setNumberInteractions(res.data)
+    }
 
     useEffect(() => {
         // api checkOnline
@@ -120,8 +152,7 @@ const handleInputContentChange = (e) => {
         fetchCheckUserOnline()
     },[user?.userid])
 
-    const userOnlineStatus = listCheckOnline[dataPost?.UserID];
-    console.log("userOnlineStatus:",userOnlineStatus)
+
     // Calculate the time difference and adjust to Vietnamese time
     const postTime = moment(dataPost.PostTime).tz("Asia/Ho_Chi_Minh");
     const currentTime = moment().tz("Asia/Ho_Chi_Minh");
@@ -135,31 +166,95 @@ const handleInputContentChange = (e) => {
         if (timeDifference.minutes() > 0) return `${timeDifference.minutes()} minutes ago`;
         return `Just now`;
     }
+    
 
-    const handleDeleteComment = async(id) => {
-        const res = await DeleteComment(id)
+//Handle like
+        const handleLike = async () => {
+            const res = await LikePost(userID,postId);
+            if(res){
+                message.success("done")
+                setLikeStatus(res.data)
+                fetchNumber()
+                fecthListUserLike()
+                localStorage.setItem(`likeStatus_${postId}`, JSON.stringify(res.data))
+            }else{
+                message.error('error')
+            }
+        }
+    // save status like loccal
+    useEffect(()=>{
+        const saveLikeStatus = localStorage.getItem(`likeStatus_${postId}`)
+        if(saveLikeStatus){
+            setLikeStatus(JSON.parse(saveLikeStatus))
+        }
+    },[postId])
+
+    
+
+    const handleOpenModal = (CommentID) => {
+        setOpenModal(openModal === CommentID ? null : CommentID)
+      }
+
+// handle edit 
+const handleEdit = (comment) =>{
+    setopenEditComment(comment.CommentID)
+    setEditComment(comment.Content)
+    setOpenModal(null)
+  }
+
+  const handleSaveEdit = async (CommentID) => {
+    const res = await UpdateComment(CommentID,EditComment,inputImage)
+    res.headers= {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+    }
+    if(res ) {
+        message.success('Successfully edited comment!')
+        setListViewComment(prevComments =>
+            prevComments.map(comment =>
+                comment.CommentID === CommentID ? { ...comment, ...res.data } : comment
+            )
+        );
+        setopenEditComment(false)
+    }else {
+        notification.error({
+            message:'An error occurred',
+            description: res.message
+        })
+    }
+  }
+
+  const handleCancel = () => {
+    setopenEditComment(null)
+    setOpenModal(null)
+  }
+  //handle delete commnet
+
+  const handleDeleteComment = async(id) => {
+    const res = await DeleteComment(id)
         res.headers= {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         }
         if(res ) {
-            message.success('Xóa thành công comment!')
-            props.getListViewComment();
+            message.success('Successfully deleted comment!')
+            setListViewComment(listViewComment.filter(comment => comment.CommentID !== id))
+            fetchNumber()
         }else {
             notification.error({
-                message:'Có lỗi xảy ra',
+                message:'An error occurred',
                 description: res.message
             })
         }
     }
 
+    const hasImages = dataPost.Images && dataPost.Images.length > 0;
     
-
-
     return (
         <Container className="news-detail-container">
           <Row className="news-row">
+{/* content left */}
             <Col className="news-col-left">
                 <div className="news-hot">
+        {/* new hot */}
                     <div className="news-hot-item">
                         <div className="news-hot-icon">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -201,7 +296,7 @@ const handleInputContentChange = (e) => {
                         </div>
                     </div>
                 </div>
-
+{/* tag */}
                 <div className="tag-oustanding">
                     <h2 className="tags-title">Tags nổi bật</h2>
                     <div className="news-hot-item">
@@ -287,7 +382,7 @@ const handleInputContentChange = (e) => {
                     </div>
                 </div>
 
-
+{/* box */}
                 <div className="tag-oustanding">
                     <h2 className="tags-title">List Box</h2>
                     {
@@ -309,18 +404,8 @@ const handleInputContentChange = (e) => {
                 
             </Col>
             <Col className="content-center" xs={6}>
-                <div className="post-new">
-                    <div className="post-new-avatar">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13 5C13 2.79066 11.2089 1 9 1C6.79109 1 5 2.79066 5 5C5 7.20934 6.79109 9 9 9C11.2089 9 13 7.20934 13 5Z" fill="#FF6934"/>
-                        <path d="M12 9C11.2357 9.5784 10.0266 10 9 10C7.95345 10 6.7718 9.59874 6 9C1.10197 10.179 0.910523 14.2341 1.0085 17.979C1.0247 18.5984 1.3724 19.0001 2 19.0001L11 19V16.0001C11 14.9814 11.307 14.0001 13 14.0001L16.5 14C16.5 11 14.5 9 12 9Z" fill="#FF6934"/>
-                        <path d="M13 17H19M19 17L17.5 15.5M19 17L17.5 18.5" stroke="#FF6934" strokeLinecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                    <input className="post-new-input" placeholder="Bạn đang nghĩ gì?"/>
-                    <button className="post-new-btn">Đăng bài</button>
-                </div>
-{/* content detail */}
+{/* content detail center */}
+    {/* content post */}
                 {dataPost.Title && dataPost.Content &&
                 <div className="post-item">
                     <div className="post-item-content">
@@ -328,8 +413,11 @@ const handleInputContentChange = (e) => {
                             <div className="user-post">
                                 <div className="info-user-post">
                                     <div className="avatar-user">
-                                        <img src={dataPost.Avatar} alt="" />
-                                        {userOnlineStatus && <p className="check-online">{userOnlineStatus?.Status}</p>}
+                                        <img src={dataPost.Avatar || iconAvatar} alt="" />
+                                        {userOnlineStatus && userOnlineStatus.Status === "Online" ? (
+                                            <span className="icon-online"><GoDotFill /></span>
+                                        ) : null
+                                        }
                                     </div>
                                     <div className="info-user">
                                         <h4>{user?.FullName}</h4>
@@ -353,19 +441,54 @@ const handleInputContentChange = (e) => {
                             </div>
                         </div>
                     </div>
-                    <div className="avatar-post">
-                            <img src={dataPost?.avatarLink}  alt=""/>
-                        </div>
-                    {/* <div className="react-post">
-                        <p>651,324 Views</p>
-                        <p>51,324 Likes</p>
-                        <p>65 Comments</p>
-                    </div> */}
+                    <div className="images-container">
+                        {
+                            hasImages ? (
+                            <div className="images-post">
+                                {
+                                dataPost.Images.length > 0 && (
+                                    dataPost.Images.map((e, index)=>(
+                                        <img src={e} 
+                                             alt={`Images ${index}`}
+                                            key={index}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                            )
+                            : null
+                        }
+                    </div>
+                    <div className="react-post">
+                        <p
+                            onMouseEnter={()=> setShowModalListLike(true)}
+                            onMouseLeave={()=> setShowModalListLike(false)}
+                            style={{cursor: 'pointer'}}
+                        >
+                            {`${isnumberInteractions.TotalLike} Likes`}
+                        </p>
+                        {
+                            showModalListLike && isListLike && (
+                                <div className="list-user-like">
+                                    {
+                                        listUserLike.map((user,index) => (
+                                            <div className="content-list" key={index}>
+                                                <div className="avarta-user-like">
+                                                    <img src={user?.avatar || iconAvatar} alt='null' />
+                                                </div>
+                                                <span>{user?.fullName}</span>
+                                            </div>
+                                    ))}
+                            </div>
+                                        
+                        )}
+                        <p>{`${isnumberInteractions.TotalComment} Comments`}</p>
+                    </div>
                     <hr style={{width:'100%', background: '#fff',height:'0.2px', border:0, margin:0}}></hr>
                     
                     <div className="post-react">
                         <div className="post-react-icon">
-                            <SlLike />
+                            <BiSolidLike onClick={handleLike} className="icon-like" style={{color: isLike ? '#1900ff' : '#C5D0E6'}}/>
                             <span>Like</span>
                         </div>
                         <div className="post-react-icon">
@@ -376,34 +499,77 @@ const handleInputContentChange = (e) => {
                             <PiShareFatLight />
                             <span>Share</span>
                         </div>
-
                     </div>
-
+{/* Comment */}
                     <hr style={{width:'100%', background: '#fff',height:'0.2px', border:0 , margin:0}}></hr>
                     {listViewComment &&
                         listViewComment.map((comment, index)=>{
+                             // Calculate the time difference and adjust to Vietnamese time
+                                const postTime = moment(comment.CommentTime).tz("Asia/Ho_Chi_Minh");
+                                const currentTime = moment().tz("Asia/Ho_Chi_Minh");
+                                const timeDifference = moment.duration(currentTime.diff(postTime));
+
+                                const formatTimeDifference = (timeDifference) => {
+                                    if (timeDifference.years() > 0) return `${timeDifference.years()} years ago`;
+                                    if (timeDifference.months() > 0) return `${timeDifference.months()} months ago`;
+                                    if (timeDifference.days() > 0) return `${timeDifference.days()} days ago`;
+                                    if (timeDifference.hours() > 0) return `${timeDifference.hours()} hours ago`;
+                                    if (timeDifference.minutes() > 0) return `${timeDifference.minutes()} minutes ago`;
+                                    return `Just now`;
+                                }
+
+
                             return(
                                 <div className="list-comment" key={`comment-${index}`}>
                                     <div className="user-post">
                                         <div className="info-user-post">
                                             <div className="avatar-user">
-                                                <img src={comment.Avatar} alt=""/>
-                                                {userOnlineStatus && <p className="check-online">{userOnlineStatus.Status}</p>}
+                                                <img src={comment?.Avatar || iconAvatar } alt="null"/>
                                             </div>
                                             <div className="info-user">
-                                                <h4>{comment.FullName}</h4>
+                                                <h4>{comment?.FullName}</h4>
                                                 <p>{formatTimeDifference(timeDifference)}</p>
                                             </div>
-                                            {/* {listCheckOnline.Status} */}
                                         </div>
                                     </div>
                                     <div className="content-comment">
-                                        <p>{comment.Content}</p>
+                                        { openEditComment === comment.CommentID  ? (
+                                            <>
+                                            <textarea
+                                                className='cmt-textarea'
+                                                value={EditComment}
+                                                onChange={(e) => setEditComment(e.target.value)}
+                                            />
+                                            <button className='btn-save' onClick={() => handleSaveEdit(comment.CommentID)}>Lưu</button>
+                                            <button className='btn-cancel' onClick={handleCancel}>Hủy</button>
+                                            </>
+                                            ) : (
+                                                <textarea
+                                                    value={comment.Content}
+                                                    readOnly
+                                                >
+                                                {comment.Content}
+                                                </textarea>
+                                        )}
                                     </div>
+                                    {comment.UserID === userID && (
+                                        <div className='cmt-actions'>
+                                            <IoEllipsisVerticalCircleSharp  onClick={()=>handleOpenModal(comment.CommentID)}/>
+                                            {
+                                            openModal === comment.CommentID && (
+                                                <div className='modal-actions'>
+                                                    <p onClick={()=> handleEdit(comment)}>Sửa</p>
+                                                    <p onClick={() => handleDeleteComment(comment.CommentID)}>Xóa </p>
+                                                </div>
+                                            )
+                                            }
+                                        </div>
+                                    )}
                                 </div>
                             )
                         })
                     }
+{/* Comment-new */}
                     <div className="comment-new">
                         <div className="post-new-avatar">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -418,6 +584,7 @@ const handleInputContentChange = (e) => {
                                 onChange={handleInputContentChange}
                                 value={inputContent} 
                                 placeholder="Viết bình luận"
+                                onKeyDown={handleKeyDown}
                             />
                             <VscSend size={24} className="comment-icon" onClick={handleClickNewComment}/>
                         </div>
@@ -426,6 +593,7 @@ const handleInputContentChange = (e) => {
                 </div>
                 }
             </Col>
+{/* Content-right */}
             <Col className="content-right">
                 <div className="old-post-right">
                     <div className="old-post-title">
