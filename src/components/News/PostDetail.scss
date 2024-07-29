@@ -39,6 +39,7 @@
                         justify-content: center;
                         color: #fff;
                         gap: 8px;
+                        cursor: pointer;
                         .news-hot-title {
                             margin: 0;
                             font-family: Source Sans Pro;
@@ -59,6 +60,19 @@
                             margin: 0;
                             color: #97989D;
                         }
+                    }
+                }
+                .news-hot-item:active{
+                    background-color: #10B700;
+                    border-radius: 10px;
+                    .news-hot-icon{
+                        background-color: #ffffff;
+                        svg{
+                            fill: #1E252B;
+                        }
+                    }
+                    .news-hot-title, .news-hot-desc{
+                        color: #fff;
                     }
                 }
             }

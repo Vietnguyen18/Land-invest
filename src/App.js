@@ -24,6 +24,8 @@ import { useSelector } from 'react-redux';
 import Notification from './components/Notification/Notification';
 import AuctionInfor from './components/Auction/AuctionInfor';
 import PlanMap from './pages/PlanMap';
+import LatestNews from './components/News/categorizeNews/LatestNews';
+import HotNews from './components/News/categorizeNews/HotNews';
 
 const Layout = () => {
     return (
@@ -70,6 +72,14 @@ function App() {
                 {
                     path: 'news/:slug',
                     element: <PostPage />,
+                },
+                {
+                    path: 'news/latest',
+                    element: <LatestNews />,
+                },
+                {
+                    path: 'news/hot',
+                    element: <HotNews />,
                 },
                 {
                     path: '/auctions',

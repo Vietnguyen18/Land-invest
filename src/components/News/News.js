@@ -5,11 +5,11 @@ import Col from 'react-bootstrap/Col';
 import "./News.scss"
 import moment from 'moment-timezone';
 import {useEffect,useRef, useState } from "react";
-import { CheckUserOnline, fetchAccount, ViewlistBox, ViewlistPost } from "../../services/api";
+import { AllPostInfor, CheckUserOnline, fetchAccount, ViewlistBox, ViewlistPost } from "../../services/api";
 import ModalCreatePost from "./createPost/ModalCreatePost";
 import { useNavigate } from "react-router-dom";
 import { GoDotFill } from "react-icons/go";
-// import { useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 // import { notification } from "antd";
 
 
@@ -25,6 +25,11 @@ const News = (props) => {
     const [isShowModalLogin, setIsShowModalLogin] = useState(false);
     const textareaRef = useRef(null);
     const [listUser, setListUser] = useState([])
+    const [isNumberInfor, setNumberInfor] = useState([])
+    const [isActiveUser, setIsActiveUser] = useState([])
+    const idUserActive = useSelector((state) => state.account.dataUser?.UserID);
+
+
 
     useEffect(() => {
         adjustTextareaHeight();
@@ -64,17 +69,29 @@ const News = (props) => {
         // api list post
         const fetchViewListPost = async () => {
             const res = await ViewlistPost()
-            setListViewPost(res.data)
+            const fectchViews = res.data
+            setListViewPost(fectchViews)
+            // categorizeNews(fectchViews)
         }
         // api list user
         const fetchListUser = async () => {
-            const res = await fetchAccount()
+            const res = await fetchAccount();
+            const fetchedUserActive = res.find((user) => user?.userid === idUserActive);
             setListUser(res)
+            setIsActiveUser(fetchedUserActive)
+        }
+
+        //api all post infor 
+
+        const fectchAllPostInfor = async () => {
+            const res = await AllPostInfor()
+            setNumberInfor(res.data)
         }
 
         fetchViewListBox()
         fetchViewListPost()
         fetchListUser()
+        fectchAllPostInfor()
     },[])
 
     useEffect(() => {
@@ -148,6 +165,13 @@ const News = (props) => {
     const handlePostCreated = (newPost) => {
         setListViewPost((prevPosts) => [newPost, ...prevPosts]); // Add new post to the list
     };
+
+    const handleNavigateLatest = (e) => {
+        navigate(`/news/latest`)
+    }
+    const handleNavigateHot = (e) => {
+        navigate(`/news/hot`)
+    }
     return (
         <>
             <Container className="news-container">
@@ -161,7 +185,7 @@ const News = (props) => {
                                 <path d="M4.462 12V8.088H5.368L6.388 10.032L6.772 10.896H6.796C6.78 10.688 6.758 10.456 6.73 10.2C6.702 9.944 6.688 9.7 6.688 9.468V8.088H7.528V12H6.622L5.602 10.05L5.218 9.198H5.194C5.214 9.414 5.236 9.646 5.26 9.894C5.288 10.142 5.302 10.382 5.302 10.614V12H4.462ZM9.71223 12.072C9.42823 12.072 9.17223 12.01 8.94423 11.886C8.71623 11.762 8.53623 11.584 8.40423 11.352C8.27223 11.12 8.20623 10.84 8.20623 10.512C8.20623 10.188 8.27223 9.91 8.40423 9.678C8.54023 9.446 8.71623 9.268 8.93223 9.144C9.14823 9.016 9.37423 8.952 9.61023 8.952C9.89423 8.952 10.1282 9.016 10.3122 9.144C10.5002 9.268 10.6402 9.438 10.7322 9.654C10.8282 9.866 10.8762 10.108 10.8762 10.38C10.8762 10.456 10.8722 10.532 10.8642 10.608C10.8562 10.68 10.8482 10.734 10.8402 10.77H9.05823C9.09823 10.986 9.18823 11.146 9.32823 11.25C9.46823 11.35 9.63623 11.4 9.83223 11.4C10.0442 11.4 10.2582 11.334 10.4742 11.202L10.7682 11.736C10.6162 11.84 10.4462 11.922 10.2582 11.982C10.0702 12.042 9.88823 12.072 9.71223 12.072ZM9.05223 10.188H10.1262C10.1262 10.024 10.0862 9.89 10.0062 9.786C9.93023 9.678 9.80423 9.624 9.62823 9.624C9.49223 9.624 9.37023 9.672 9.26223 9.768C9.15423 9.86 9.08423 10 9.05223 10.188ZM11.9485 12L11.2045 9.024H12.0805L12.3685 10.404C12.3925 10.552 12.4145 10.698 12.4345 10.842C12.4545 10.986 12.4765 11.134 12.5005 11.286H12.5245C12.5525 11.134 12.5785 10.984 12.6025 10.836C12.6305 10.688 12.6625 10.544 12.6985 10.404L13.0285 9.024H13.7905L14.1265 10.404C14.1625 10.552 14.1945 10.698 14.2225 10.842C14.2545 10.986 14.2845 11.134 14.3125 11.286H14.3365C14.3645 11.134 14.3865 10.986 14.4025 10.842C14.4225 10.698 14.4465 10.552 14.4745 10.404L14.7565 9.024H15.5725L14.8585 12H13.8265L13.5565 10.812C13.5285 10.672 13.5005 10.532 13.4725 10.392C13.4485 10.252 13.4225 10.102 13.3945 9.942H13.3705C13.3425 10.102 13.3165 10.252 13.2925 10.392C13.2725 10.532 13.2485 10.672 13.2205 10.812L12.9565 12H11.9485Z" fill="white"/>
                                 </svg>
                             </div>
-                            <div className="news-hot-content">
+                            <div className="news-hot-content" onClick={()=>handleNavigateLatest()}>
                                 <h2 className="news-hot-title">Tin mới nhất</h2>
                                 <p className="news-hot-desc">Find the latest update</p>
                             </div>
@@ -174,7 +198,7 @@ const News = (props) => {
                             </svg>
     
                             </div>
-                            <div className="news-hot-content">
+                            <div className="news-hot-content" onClick={()=>handleNavigateHot()}>
                                 <h2 className="news-hot-title">Tin hot trong ngày</h2>
                                 <p className="news-hot-desc">Shots featured today by curators</p>
                             </div>
@@ -306,11 +330,7 @@ const News = (props) => {
                 <Col className="content-center" xs={6}>
                     <div className="post-new">
                         <div className="post-new-avatar">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M13 5C13 2.79066 11.2089 1 9 1C6.79109 1 5 2.79066 5 5C5 7.20934 6.79109 9 9 9C11.2089 9 13 7.20934 13 5Z" fill="#FF6934"/>
-                                <path d="M12 9C11.2357 9.5784 10.0266 10 9 10C7.95345 10 6.7718 9.59874 6 9C1.10197 10.179 0.910523 14.2341 1.0085 17.979C1.0247 18.5984 1.3724 19.0001 2 19.0001L11 19V16.0001C11 14.9814 11.307 14.0001 13 14.0001L16.5 14C16.5 11 14.5 9 12 9Z" fill="#FF6934"/>
-                                <path d="M13 17H19M19 17L17.5 15.5M19 17L17.5 18.5" stroke="#FF6934" strokeLinecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <img className="avatar-img" src={isActiveUser?.avatarLink || iconAvatar} alt="null" />
                         </div>
                         <textarea
                             className="post-new-input"
@@ -322,9 +342,8 @@ const News = (props) => {
                             style={{cursor:'pointer'}}
                         ></textarea>
                         <button onClick={()=>setIsShowModalLogin(true)} className="post-new-btn">Đăng bài</button>
-                        
                     </div>
-    {/* New Content list */}
+    {/* New Content list center */}
                     {listViewPost && listUser.length > 0 && listViewPost.length > 0 && 
                         listViewPost.map((post, index)=>{
                             const user = listUser.find(user => user.userid === post.UserID);
@@ -393,21 +412,35 @@ const News = (props) => {
                                         }
                                         
                                         <div className="hagtags-post">
-                                            <div className="hagtags-pos-item">#hieuche</div>
-                                            <div className="hagtags-pos-item">#dinhdung</div>
-                                            <div className="hagtags-pos-item">#chesun</div>
+                                            {
+                                                post.Hastags.length > 0 && (
+                                                    post.Hastags.map((hastag, index) => (
+                                                        <div className="hagtags-pos-item" key={index}>{hastag}</div>
+                                                    ))
+                                                )
+                                            }
                                         </div>
-                                        <div className="react-post">
-                                            <p>651,324 Views</p>
-                                            <p>51,324 Likes</p>
-                                            <p>65 Comments</p>
-                                        </div>
+                                            {
+                                                isNumberInfor && (
+                                                    isNumberInfor.map((e,index) => {
+                                                        if(e.PostID === post.PostID) {
+                                                            return (
+                                                                <div className="react-post" key={index}>
+                                                                    <p>{`${e.TotalLike} Likes`}</p>
+                                                                    <p>{`${e.TotalComment} Comments`}</p>
+                                                                    <p>{`${e.TotalShare} Shares`}</p>
+                                                                </div>
+                                                            )}
+                                                        return null;
+                                                    }))
+                                            }
                                     </div>
                                 </div>
                             )
                         })
                     }
-                </Col>
+            </Col>
+        {/* content right */}
                 <Col className="content-right">
                     <div className="old-post-right">
                         <div className="old-post-title">

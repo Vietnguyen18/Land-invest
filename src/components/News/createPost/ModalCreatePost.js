@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { CreatePost, fetchAccount } from '../../../services/api';
 import 'react-quill/dist/quill.snow.css'; // Import Quill's CSS
 import { IoMdCloseCircleOutline } from 'react-icons/io';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 
 const iconAvatar = 'https://png.pngtree.com/png-clipart/20210608/ourlarge/pngtree-dark-gray-simple-avatar-png-image_3418404.jpg'
@@ -21,10 +22,9 @@ const ModalCreatePost = (props) => {
     const [inputValueTitle, setInputValueTitle] = useState('');
     const [inputValueContent, setInputValueContent] = useState('');
     const [selectedValueGroup, setSelectedValueGroup] = useState(null);
-    console.log('selectedValueGroup',selectedValueGroup);
-    // const [showSecondTextarea, setShowSecondTextarea] = useState(false);
     const textareaTitleRef = useRef(null);
     const textareaContentRef = useRef(null);
+    const textareaHastagRef = useRef(null);
     const datauser = useSelector((state) => state.account.dataUser);
     // const navigate = useNavigate();
     const listGroups = useSelector((state) => state.listbox.listgroup);
@@ -34,8 +34,10 @@ const ModalCreatePost = (props) => {
     const [showModalImage, setShowModalImage] = useState(false)
     const [files, setFiles] = useState([]);
     const [base64Images, setBase64Images] = useState([]);
+    const [isHastags, setIsHastags] = useState('')
+    const [isLoading, setIsLoading] = useState(false);
 
-    console.log('listGroups',listGroups);
+    
 
 
 
@@ -85,6 +87,12 @@ const ModalCreatePost = (props) => {
     const handleInputTitleChange = (e) => {
         setInputValueTitle(e.target.value);
     };
+
+    const handleInputHastagsChange =(e) =>{
+        const value = e.target.value;
+        const hastagsArray = value.split(/[ ,]+/).map(tag => tag.startsWith('#') ? tag : `#${tag}`);
+        setIsHastags(hastagsArray);
+    }
 
 
      //User
@@ -172,12 +180,14 @@ const ModalCreatePost = (props) => {
             return;
         }
         try{
-            const res = await CreatePost(selectedValueGroup, inputValueTitle, inputValueContent,PostLatitude, PostLongitude,base64Images, {
+            setIsLoading(true);
+            const res = await CreatePost(selectedValueGroup, inputValueTitle, inputValueContent,PostLatitude, PostLongitude,base64Images,isHastags, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
             console.log('res', res.data);
+            setIsLoading(false);
             if (res.data) {
                 message.success('Added new post successfully');
                 handleClose();
@@ -185,6 +195,8 @@ const ModalCreatePost = (props) => {
                 setInputValueContent("");
                 setFiles([]);
                 setBase64Images([]);
+                setIsHastags('')
+                setIsLoading(false);
                 if (res.data.length > 0) {
                     onPostCreated(res.data[0]);
                 } else {
@@ -193,7 +205,7 @@ const ModalCreatePost = (props) => {
             } else {
                 notification.error({
                     message: 'An error has occurred',
-                    description: res.message
+                    description: res.message,
                 });
             }
         }catch(error){
@@ -269,6 +281,14 @@ const ModalCreatePost = (props) => {
                                 onChange={(e) => setInputValueContent(e.target.value)}
                                 ref={textareaContentRef}
                             />
+                            <textarea
+                                className="post-hastag-input"
+                                placeholder="Hastag..."
+                                value={isHastags}
+                                onChange={handleInputHastagsChange}
+                                ref={textareaHastagRef}
+                                style={{ cursor: 'pointer', padding:'8px', margin:'auto 0' , height:'40px', border: 'none' }}
+                            ></textarea>
                             {
                                 showModalImage 
                                 && (<div className='post-image'>
@@ -310,6 +330,11 @@ const ModalCreatePost = (props) => {
                     <Button className='btn-post' variant="primary" onClick={handleClickNewPost}>
                         Đăng bài
                     </Button>
+                    {isLoading && (
+                        <div className="loading-overlay">
+                            <AiOutlineLoading3Quarters className="loading" />
+                        </div>
+                    )}
                 </Modal.Footer>
             </div>
         </Modal>
