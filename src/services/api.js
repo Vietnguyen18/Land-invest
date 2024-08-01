@@ -258,6 +258,9 @@ export const CheckUserOnline = (USERID) => {
 export const BlockUserPost = (USERID) => {
     return instance.patch(`/api/forum/block_user/${USERID}`);
 }
+export const UpdateProfileUser = (updatedUserData) => {
+    return instance.patch("/api/profile/updateprofile", updatedUserData)
+}
 
 //api account
 export const fetchAccount = async () => {

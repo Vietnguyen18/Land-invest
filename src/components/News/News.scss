@@ -18,6 +18,7 @@
                 .news-hot-item {
                     display: flex;
                     gap: 14px;
+                    align-items: center;
                     .news-hot-icon {
                         width: 50px;
                         height: 50px;
@@ -60,7 +61,7 @@
                         }
                     }
                 }
-                .news-hot-item:active{
+                .active{
                     background-color: #10B700;
                     border-radius: 10px;
                     .news-hot-icon{
@@ -69,8 +70,10 @@
                             fill: #1E252B;
                         }
                     }
-                    .news-hot-title, .news-hot-desc{
-                        color: #fff;
+                    .news-hot-content{
+                        .news-hot-desc{
+                            color: #C5D0E6;
+                        }
                     }
                 }
             }
@@ -163,8 +166,8 @@
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    width: 40px;
-                    height: 40px;
+                    width: 50px;
+                    height: 50px;
                     border-radius: 50%;
                     background-color: #2C353D;
                     .avatar-img{
@@ -232,7 +235,7 @@
                                 align-items: center;
                                 img{
                                     width: 50px;
-                                    height: 40px;
+                                    height: 50px;
                                     border-radius: 50%;
                                     background-color: white;
                                 }
