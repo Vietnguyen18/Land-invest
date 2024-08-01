@@ -1,5 +1,7 @@
 import instance from "../utils/axios-customize";
 
+
+// api login, logout
 export const callLogin = (Username, Password) => {
     const params = {
         Username:Username, 
@@ -7,19 +9,26 @@ export const callLogin = (Username, Password) => {
     }
     return instance.post('/api/login',params)
 }
+export const callLogout = (Username, Password) => {
+    const params = {
+        Username: Username,
+        Password: Password
+    }
+    return instance.post('/api/logout',params)
+}
 
-
-export const callRegister = (registerUsername, registerFullName, registerPassword, registerGender, registerLatitude, registerLongitude, registeravatarLink, registerEmail, registerLastLoginIP) => {
+// api register
+export const callRegister = (Username, Fullname, Password, Gender, Latitude, Longitude, AvatarLink,ipAddress, Email) => {
     const payload = {
-        Username:registerUsername,
-        FullName:registerFullName,
-        Password:registerPassword,
-        Gender:registerGender,
-        Latitude:registerLatitude,
-        Longitude:registerLongitude,
-        avatarLink: registeravatarLink,
-        Email:registerEmail,
-        LastLoginIP:registerLastLoginIP
+        Username:Username,
+        FullName:Fullname,
+        Password:Password,
+        Gender:Gender,
+        Latitude:Latitude,
+        Longitude:Longitude,
+        avatarLink: AvatarLink,
+        Email:Email,
+        LastLoginIP:ipAddress
     };
 
     console.log('Payload:', payload);
@@ -34,15 +43,9 @@ export const callRegister = (registerUsername, registerFullName, registerPasswor
         });
 };
 
-export const callLogout = (Username, Password) => {
-    const params = {
-        Username: Username,
-        Password: Password
-    }
-    return instance.post('/api/logout',params)
-}
 
 
+// api token
 export const callRefeshToken = () => {
     return instance.post('/refresh_token')
 }
@@ -55,28 +58,26 @@ export const callforgotPassword = (email) => {
     })
 }
 
-
+//api search quy hoạch
 
 export const searchQueryAPI = (query) => {
     return instance.get(`/api/zonings/view?name=${encodeURIComponent(query)}`);
 }
 
-
+// api box
 export const ViewlistBox = () => {
     return instance.get('/api/box/viewlist_box');
 }
-
-export const ViewlistPost = () => {
-    return instance.get('/api/forum/view_allpost');
+export const CreateBox = (BoxName, Description, avatarLink) => {
+    return instance.post('/api/box/add_box',{BoxName, Description, avatarLink});
 }
 
 export const UpdateBox = (BoxID, BoxName, Description, avatarLink) => {
     return instance.patch(`/api/box/update_box/${BoxID}`,{BoxName, Description, avatarLink});
 }
 
-export const CreateBox = (BoxName, Description, avatarLink) => {
-    return instance.post('/api/box/add_box',{BoxName, Description, avatarLink});
-}
+
+
 
 
 //Api Auction
@@ -135,9 +136,9 @@ export const fetchOrganization = async () => {
     return response.data;
 }
 
-export const fetchCreateComment = async (IDAuction, comment , dataUserID) => {
+export const fetchCreateComment = async (IDAuction, comment , userId) => {
     const params = {
-        idUser: dataUserID,
+        idUser: userId,
         content: comment,
     };
     const response = await instance.post(`/api/landauctions/create_comment/${IDAuction}`,params)
@@ -145,11 +146,6 @@ export const fetchCreateComment = async (IDAuction, comment , dataUserID) => {
     return response.data
 }
 
-//api account
-export const fetchAccount = async () => {
-    const response =  await instance.get("/api/listalluser");
-    return response.data
-}
 
 //api list comment
 export const fetchListComment = async(IDAuction) => {
@@ -171,16 +167,70 @@ export const DeleteCommentAuction = async(IDComment) => {
     return response.data
 }
 
-// *********
 
-export const ViewlistGroup = (BoxID) => {
-    return instance.get(`/api/group/all_group/${BoxID}`);
+
+//forums post
+
+export const ViewlistPost = () => {
+    return instance.get('/api/forum/view_allpost');
 }
 
+export const CreatePost = ( GroupID, Title, Content, PostLatitude , PostLongitude,base64Images,isHastags) => {
+    const params = {
+        GroupID: GroupID,
+        Title: Title,
+        Content: Content,
+        PostLatitude: PostLatitude,
+        PostLongitude: PostLongitude,
+        Images: base64Images,
+        Hastags: isHastags
+    }
+    console.log('params', params);
+    return instance.post('/api/forum/add_post',params);
+}
+export const UpdatePost = (PostID, Title, Content) => {
+    return instance.patch(`/api/forum/update_post/${PostID}`,{Title, Content});
+}
+export const callFetchPostById = (PostID) => {
+    return instance.get(`/api/forum/view_post/${PostID}`);
+}
+
+export const DeletePost = (PostID) => {
+    return instance.delete(`/api/forum/delete_post/${PostID}`);
+}
+
+// api like, comment, share
+
+export const LikePost = (idUser, idPost) => {
+    return instance.post(`/api/forum/like_post/${idUser}/${idPost}`)
+}
+
+export const ListUserLike = (idPost) => {
+    return instance.get(`/api/forum/list_user_like_post/${idPost}`)
+}
+export const numberInteractions = (idPost) => {
+    return instance.get(`/api/forum/number_info_post/${idPost}`)
+}
+export const AllPostInfor = () => {
+    return instance.get("/api/forum/all_post_info")
+}
+
+
+// api comment post 
 export const ViewlistComment = (PostID) => {
     return instance.get(`/api/post/comments/${PostID}`);
 }
+export const CreateComment = (PostID,Content, Images) => {
+    return instance.post(`/api/post/add_comment/${PostID}`,{Content, Images});
+}
+export const UpdateComment = (CommentID, Content, PhotoURL) => {
+    return instance.patch(`/api/post/comment/update/${CommentID}`,{Content, PhotoURL});
+}
+export const DeleteComment = (CommentID) => {
+    return instance.delete(`/api/post/comment/remove/${CommentID}`);
+}
 
+// api group 
 export const CreateGroup = ( BoxID, GroupName, avatarLink) => {
     return instance.post('/api/group/add_group',{BoxID, GroupName, avatarLink});
 }
@@ -188,49 +238,32 @@ export const CreateGroup = ( BoxID, GroupName, avatarLink) => {
 export const UpdateGroup = (GroupID, GroupName) => {
     return instance.patch(`/api/group/update_group/${GroupID}`,{GroupName});
 }
-
-export const CreateComment = (PostID,Content, Images) => {
-    return instance.post(`/api/post/add_comment/${PostID}`,{Content, Images});
+export const DeleteGroup = (GroupID) => {
+    return instance.delete(`/api/group/remove_group/${GroupID}`);
+}
+export const ViewlistGroup = (BoxID) => {
+    return instance.get(`/api/group/all_group/${BoxID}`);
 }
 
-export const UpdateComment = (CommentID, Content, PhotoURL) => {
-    return instance.patch(`/api/post/comment/update/${CommentID}`,{Content, PhotoURL});
-}
-
-export const DeleteComment = (CommentID) => {
-    return instance.delete(`/api/post/comment/remove/${CommentID}`);
-}
-
-
-export const CreatePost = ( GroupID, Title, Content, PostLatitude , PostLongitude) => {
-    return instance.post('/api/forum/add_post',{GroupID, Title, Content, PostLatitude , PostLongitude});
-}
-export const UpdatePost = (PostID, Title, Content) => {
-    return instance.patch(`/api/forum/update_post/${PostID}`,{Title, Content});
-}
-
-export const callFetchPostById = (PostID) => {
-    return instance.get(`/api/forum/view_post/${PostID}`);
-}
+// api user, checkonline
 export const callGetAllUsers = () => {
     return instance.get(`/api/listalluser`);
+}
+export const ViewProfileUser = (USERID) => {
+    return instance.get(`/api/private/profile/${USERID}`);
+}
+export const CheckUserOnline = (USERID) => {
+    return instance.get(`/api/checkOnline/${USERID}`);
 }
 export const BlockUserPost = (USERID) => {
     return instance.patch(`/api/forum/block_user/${USERID}`);
 }
-
-export const CheckUserOnline = (USERID) => {
-    return instance.get(`/api/checkOnline/${USERID}`);
+export const UpdateProfileUser = (updatedUserData) => {
+    return instance.patch("/api/profile/updateprofile", updatedUserData)
 }
 
-export const ViewProfileUser = (USERID) => {
-    return instance.get(`/api/private/profile/${USERID}`);
-}
-
-export const DeletePost = (PostID) => {
-    return instance.delete(`/api/forum/delete_post/${PostID}`);
-}
-
-export const DeleteGroup = (GroupID) => {
-    return instance.delete(`/api/group/remove_group/${GroupID}`);
+//api account
+export const fetchAccount = async () => {
+    const response =  await instance.get("/api/listalluser");
+    return response.data
 }

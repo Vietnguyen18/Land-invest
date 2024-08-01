@@ -28,6 +28,9 @@ const params = {
     polygon_geojson: 1,
 };
 
+const iconAvatar = 'https://png.pngtree.com/png-clipart/20210608/ourlarge/pngtree-dark-gray-simple-avatar-png-image_3418404.jpg'
+
+
 const Header = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -235,7 +238,7 @@ const Header = () => {
                                             }}
                                         >
                                             <Space>
-                                                <Avatar src={apiUser?.avatarLink} />
+                                                <Avatar src={apiUser?.avatarLink || iconAvatar} />
                                                 {apiUser?.FullName}
                                             </Space>
                                         </a>

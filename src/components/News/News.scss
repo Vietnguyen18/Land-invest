@@ -18,6 +18,7 @@
                 .news-hot-item {
                     display: flex;
                     gap: 14px;
+                    align-items: center;
                     .news-hot-icon {
                         width: 50px;
                         height: 50px;
@@ -38,6 +39,7 @@
                         justify-content: center;
                         color: #fff;
                         gap: 8px;
+                        cursor: pointer;
                         .news-hot-title {
                             margin: 0;
                             font-family: Source Sans Pro;
@@ -45,7 +47,6 @@
                             font-weight: 600;
                             line-height: 18px;
                             text-align: left;
-
                         }
 
                         .news-hot-desc {
@@ -57,6 +58,21 @@
                             text-align: left;
                             margin: 0;
                             color: #97989D;
+                        }
+                    }
+                }
+                .active{
+                    background-color: #10B700;
+                    border-radius: 10px;
+                    .news-hot-icon{
+                        background-color: #ffffff;
+                        svg{
+                            fill: #1E252B;
+                        }
+                    }
+                    .news-hot-content{
+                        .news-hot-desc{
+                            color: #C5D0E6;
                         }
                     }
                 }
@@ -141,7 +157,7 @@
             .post-new {
                 width: 100%;
                 display: flex;
-                padding: 20px;
+                padding: 15px;
                 gap: 20px;
                 background-color: #262D34;
                 border-radius: 10px;
@@ -150,10 +166,18 @@
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    width: 40px;
-                    height: 40px;
+                    width: 50px;
+                    height: 50px;
                     border-radius: 50%;
                     background-color: #2C353D;
+                    .avatar-img{
+                        width: 100% ;
+                        height: 100%;
+                        object-fit: cover; 
+                        border-radius: 10px;
+                        display: flex;
+                        flex-wrap: wrap; 
+                    }
                 }
                 .post-new-input {
                     width: 450px;
@@ -178,43 +202,67 @@
                     outline: none;
                     border: none;
                     color: #FFFFFF;
+                    text-align: center;
                 }
             }
 
             .post-item{
                 width: 100%;
-                display: flex;
+                // display: flex;
                 padding: 20px;
                 gap: 20px;
                 background-color: #262D34;
                 border-radius: 10px;
                 align-items: center;
-                .avatar-post {
-                    color: #fff;
-                    width: 156px;
-                    height: 156px;
-                    border-radius: 10px;
-                    background-color: #2C353D;
-                }
                 .content-post {
                     flex: 1;
                     display: flex;
                     flex-direction: column;
                     gap: 20px;
                     color: #fff;
-                    .title-post {
+                    .user-post {
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
-                        gap: 50px;
-                        .content {
-                            p {
-                                margin: 0;
+                        .info-user-post {
+                            display: flex;
+                            align-items: center;
+                            gap: 15px;
+                            .avatar-user {
+                                position: relative;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                img{
+                                    width: 50px;
+                                    height: 50px;
+                                    border-radius: 50%;
+                                    background-color: white;
+                                }
+                                .icon-online {
+                                    position: absolute;
+                                    bottom: -6px;
+                                    right: -5px;
+                                    font-size: 20px;
+                                    color: red;
+                                }
                             }
-                        }
-                        h2 {
-                            font-size: 16px;
-                            margin: 0;
+                            .info-user {
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: center;
+                                gap: 4px;
+
+                                h4{
+                                    font-size: 12px;
+                                    margin: 0;
+                                    text-transform: uppercase;
+                                }
+                                p {
+                                    font-size: 9px;
+                                    margin: 0;
+                                }
+                            }
                         }
                         .like-post {
                             display: flex;
@@ -222,6 +270,40 @@
                             align-items: center;
                             width: 30px;
                             height: 30px;
+                            .icon{
+                                fill: #C5D0E6;
+                            }
+                            .icon:hover{
+                                fill: #10B700;
+                                cursor: pointer;
+                            }
+                        }
+                    }
+                    .title-post {
+                        display: flex;
+                        flex-direction: column;
+                        .post-title,.post-content{
+                            padding: 10px;
+                            margin: 0;
+                        }
+                        .post-title{
+                            font-size: 18px;
+                        }
+                    }
+                    .avatar-post {
+                        color: #fff;
+                        width: 150px;
+                        height: 200px;
+                        border-radius: 10px;
+                        display: flex;
+                        gap: 30px;
+                        img{
+                            width: 100% ;
+                            height: 100%;
+                            object-fit: cover; 
+                            border-radius: 10px;
+                            display: flex;
+                            flex-wrap: wrap;
                         }
                     }
                     .hagtags-post {
@@ -236,55 +318,14 @@
                         }
                     }
 
-                    .user-post {
+                    .react-post {
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
-                        .info-user-post {
-                            display: flex;
-                            align-items: center;
-                            gap: 10px;
-                            .avatar-user {
-                                width: 40px;
-                                height: 40px;
-                                border-radius: 50%;
-                                background-color: #2C353D;
-                                position: relative;
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-                            
-                                .check-online {
-                                    position: absolute;
-                                    font-size: 9px;
-                                    text-align: center;
-                                    width: 100%;
-                                    bottom: -15px;
-                                }
-                            }
-                            .info-user {
-                                display: flex;
-                                flex-direction: column;
-                                justify-content: center;
-                                gap: 4px;
-
-                                h4{
-                                    font-size: 12px;
-                                    margin: 0;
-                                }
-                                p {
-                                    font-size: 9px;
-                                    margin: 0;
-                                }
-                            }
-                        }
-                        .react-post {
-                            display: flex;
-                            gap: 20px;
-                            p {
-                                margin: 0;
-                                font-size: 12px;
-                            }
+                        gap: 20px;
+                        p {
+                            margin: 0;
+                            font-size: 12px;
                         }
                     }
 
