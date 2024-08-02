@@ -91,11 +91,12 @@ const News = (props) => {
         fetchViewListPost()
         fetchListUser()
         fectchAllPostInfor()
-    },[])
+    },[idUserActive])
 
     useEffect(() => {
         // api checkOnline
         const fetchCheckUserOnline = () => {
+            if (listViewPost.length === 0 || listUser.length === 0) return;
             if(listViewPost.length > 0 && listUser.length > 0){
                 listViewPost.map(async (post) => {
                     const user = listUser.find(user => user.userid === post.UserID)
@@ -107,11 +108,9 @@ const News = (props) => {
                                         [user.userid]: res.data
                                     }));
                                 }
-                        }
-                })
+                        }})
                 return null
             }
-
         }
         fetchCheckUserOnline()
     },[listViewPost,listUser])

@@ -15,13 +15,17 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                .post-new-select {
-                    padding: 4px;
-                    height: 34px;
-                    outline: none;
-                    border-radius: 5px;
-                    border: 1px solid #ccc;
-                    color: #858EAD;;
+                .list-group{
+                    display: flex;
+                    gap: 5px;
+                    .post-new-select {
+                        padding: 4px;
+                        height: 34px;
+                        outline: none;
+                        border-radius: 5px;
+                        border: 1px solid #ccc;
+                        color: #858EAD;;
+                    }
                 }
             }
             .post-new-input,.post-hastag-input {
