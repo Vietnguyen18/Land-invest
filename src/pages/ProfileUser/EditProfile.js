@@ -160,9 +160,9 @@ const EditProfile = ({ user, onUpdate }) => {
               value={editedUser.Gender}
               onChange={handleChange}
             >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="Nam">Male</option>
+              <option value="Nữ">Female</option>
+              <option value="">Other</option>
             </select>
           </div>
           <div className="form-group">

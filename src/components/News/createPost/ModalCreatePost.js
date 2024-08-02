@@ -22,12 +22,14 @@ const ModalCreatePost = (props) => {
     const [inputValueTitle, setInputValueTitle] = useState('');
     const [inputValueContent, setInputValueContent] = useState('');
     const [selectedValueGroup, setSelectedValueGroup] = useState(null);
+    const [selectedValueList, setSelectedValueList] = useState(null);
     const textareaTitleRef = useRef(null);
     const textareaContentRef = useRef(null);
     const textareaHastagRef = useRef(null);
     const datauser = useSelector((state) => state.account.dataUser);
     // const navigate = useNavigate();
     const listGroups = useSelector((state) => state.listbox.listgroup);
+    const listBox = useSelector((state) => state.listbox.list);
     const [apiUser, setApiUser] = useState([]); // user khi đăng nhập thành công
     const [PostLatitude, setPostLatitude] = useState(null)
     const [PostLongitude, setPostLongitude] = useState(null)
@@ -37,15 +39,24 @@ const ModalCreatePost = (props) => {
     const [isHastags, setIsHastags] = useState('')
     const [isLoading, setIsLoading] = useState(false);
 
-    
+    console.log('selectedValueGroup',selectedValueGroup);
+    console.log('selectedValueList',selectedValueList);
 
 
 
-
-    const handleChangeValueGroup = (event) => {
-        setSelectedValueGroup(Number(event.target.value));
+    const handleChangeValueList = (event) => {
+        const selectedList = Number(event.target.value);
+        setSelectedValueList(selectedList);
+        setSelectedValueGroup(null); // Reset group selection when list changes
       };
-
+    const handleChangeValueGroup = (event) => {
+        const selectedGroup = Number(event.target.value);
+        if (selectedGroup !== selectedValueList) {
+            setSelectedValueGroup(selectedGroup);
+          }
+      };
+      const isGroupSelectEnabled = selectedValueList !== null;
+      const filteredGroups = listGroups.filter(group => group.BoxID === selectedValueList);
 
     useEffect(() => {
         adjustTextareaHeightTitle();
@@ -254,16 +265,30 @@ const ModalCreatePost = (props) => {
                                 <Avatar src={apiUser?.avatarLink || iconAvatar} />
                                 {apiUser?.FullName || "Tên chủ tài khoản"}
                             </Space>
-                            <select className='post-new-select' value={selectedValueGroup} onChange={handleChangeValueGroup}>
-                                <option value={0}>Chọn Nhóm</option>
-                                {listGroups && 
-                                    listGroups.map((group, index) => (
-                                    <option key={`namegroup-${index}`} value={group.GroupID}>
-                                        {group.GroupName}
-                                    </option>
-                                    ))
-                                }
-                            </select>
+                            <div className='list-group'>
+                                <select className='post-new-select' value={selectedValueGroup} onChange={handleChangeValueList}>
+                                    <option value={0}>Danh sách</option>
+                                    {listBox && 
+                                        listBox.map((box, index) => (
+                                        <option key={`namegroup-${index}`} value={box.BoxID}>
+                                            {box.BoxName}
+                                        </option>
+                                        ))
+                                    }
+                                </select>
+                                <select className='post-new-select' value={selectedValueGroup} onChange={handleChangeValueGroup}  disabled={!isGroupSelectEnabled}>
+                                    <option value={0}>Chọn Nhóm</option>
+                                    {filteredGroups.length > 0 ? (
+                                        filteredGroups.map((group, index) => (
+                                            <option key={`group-${index}`} value={group.GroupID} disabled={group.GroupID === selectedValueList}>
+                                            {group.GroupName}
+                                            </option>
+                                        ))
+                                        ) : (
+                                        <option disabled>Không có nhóm nào</option>
+                                    )}
+                                </select>
+                            </div>
                         </div>
                         <div>
                             <textarea
